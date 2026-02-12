@@ -1,0 +1,111 @@
+export interface LanguageConfig {
+  code: string;
+  name: string;
+  nativeName: string;
+  flag: string;
+  direction: 'ltr' | 'rtl';
+  ui: {
+    appSubtitle: string;
+    selectLanguage: string;
+    whatWouldYouLikeToDo: string;
+    practiceSpeaking: string;
+    practiceSpeakingDesc: string;
+    helpSupport: string;
+    helpSupportDesc: string;
+    changeLanguage: string;
+    back: string;
+    endSession: string;
+    connecting: string;
+    listening: string;
+    currentPhrase: string;
+    pronunciation: string;
+    feedback: string;
+    localProviders: string;
+    micMuted: string;
+    micUnmuted: string;
+  };
+}
+
+export const LANGUAGES: LanguageConfig[] = [
+  {
+    code: 'ar',
+    name: 'Arabic',
+    nativeName: 'العربية',
+    flag: '🇸🇦',
+    direction: 'rtl',
+    ui: {
+      appSubtitle: 'مساعدك في تعلم اللغة الإنجليزية',
+      selectLanguage: 'اختر لغتك',
+      whatWouldYouLikeToDo: 'ماذا تريد أن تفعل؟',
+      practiceSpeaking: 'أريد أن أتدرب على التحدث بالإنجليزية',
+      practiceSpeakingDesc: 'تدرب على النطق والمحادثة مع معلمك الذكي',
+      helpSupport: 'أريد المساعدة والدعم',
+      helpSupportDesc: 'ابحث عن دروس اللغة الإنجليزية والخدمات المحلية القريبة منك',
+      changeLanguage: 'تغيير اللغة',
+      back: 'رجوع',
+      endSession: 'إنهاء الجلسة',
+      connecting: 'جاري الاتصال...',
+      listening: 'المعلم يستمع...',
+      currentPhrase: 'العبارة الحالية',
+      pronunciation: 'النطق',
+      feedback: 'ملاحظات',
+      localProviders: 'دروس اللغة الإنجليزية بالقرب منك',
+      micMuted: 'الميكروفون مكتوم',
+      micUnmuted: 'الميكروفون مفعل',
+    },
+  },
+  {
+    code: 'fr',
+    name: 'French',
+    nativeName: 'Français',
+    flag: '🇫🇷',
+    direction: 'ltr',
+    ui: {
+      appSubtitle: "Votre assistant d'apprentissage de l'anglais",
+      selectLanguage: 'Choisissez votre langue',
+      whatWouldYouLikeToDo: 'Que souhaitez-vous faire ?',
+      practiceSpeaking: "Je veux pratiquer l'anglais",
+      practiceSpeakingDesc: 'Pratiquez la prononciation et la conversation avec votre tuteur IA',
+      helpSupport: "J'ai besoin d'aide et de soutien",
+      helpSupportDesc: "Trouvez des cours d'anglais et des services locaux près de chez vous",
+      changeLanguage: 'Changer de langue',
+      back: 'Retour',
+      endSession: 'Terminer la session',
+      connecting: 'Connexion en cours...',
+      listening: 'Le tuteur écoute...',
+      currentPhrase: 'Phrase actuelle',
+      pronunciation: 'Prononciation',
+      feedback: 'Commentaires',
+      localProviders: "Cours d'anglais près de chez vous",
+      micMuted: 'Microphone coupé',
+      micUnmuted: 'Microphone activé',
+    },
+  },
+  {
+    code: 'de',
+    name: 'German',
+    nativeName: 'Deutsch',
+    flag: '🇩🇪',
+    direction: 'ltr',
+    ui: {
+      appSubtitle: 'Ihr Englisch-Lernassistent',
+      selectLanguage: 'Wählen Sie Ihre Sprache',
+      whatWouldYouLikeToDo: 'Was möchten Sie tun?',
+      practiceSpeaking: 'Englisch sprechen üben',
+      practiceSpeakingDesc: 'Üben Sie Aussprache und Konversation mit Ihrem KI-Tutor',
+      helpSupport: 'Hilfe & Unterstützung',
+      helpSupportDesc: 'Finden Sie Englischkurse und lokale Dienste in Ihrer Nähe',
+      changeLanguage: 'Sprache ändern',
+      back: 'Zurück',
+      endSession: 'Sitzung beenden',
+      connecting: 'Verbindung wird hergestellt...',
+      listening: 'Tutor hört zu...',
+      currentPhrase: 'Aktuelle Phrase',
+      pronunciation: 'Aussprache',
+      feedback: 'Feedback',
+      localProviders: 'Englischkurse in Ihrer Nähe',
+      micMuted: 'Mikrofon stumm',
+      micUnmuted: 'Mikrofon aktiv',
+    },
+  },
+];

@@ -1,58 +1,48 @@
-import { useMemo, useState, useEffect } from 'react';
-import { useRealtimeAgent } from './hooks';
-import {
-  createDisplayOutputTool,
-  createRatePronunciationTool,
-  createProvidePronunciationFeedbackTool
-} from './tools';
-import AppHeader from './components/AppHeader';
-import Main from './components/Main';
-import Output from './components/Output';
-import PronunciationRating from './components/PronunciationRating';
-import PronunciationFeedback from './components/PronunciationFeedback';
-import './App.css';
+import { useState } from 'react';
+import { useLanguage } from './hooks';
+import LanguageSelectScreen from './components/LanguageSelectScreen';
+import HomeScreen from './components/HomeScreen';
+import PracticeSpeakingScreen from './components/PracticeSpeakingScreen';
+import HelpSupportScreen from './components/HelpSupportScreen';
+
+type Screen = 'language-select' | 'home' | 'practice' | 'help';
 
 function App() {
-  const [translationPhrase, setTranslationPhrase] = useState({
-    englishText: '',
-    phoneticGujaratiText: '',
-    gujaratiText: ''
-  });
-  const [pronunciationFeedback, setPronunciationFeedback] = useState('');
-  const [pronunciationRating, setPronunciationRating] = useState(0);
+  const { language, setLanguage, clearLanguage } = useLanguage();
+  const [screen, setScreen] = useState<Screen>(language ? 'home' : 'language-select');
 
-  const tools = useMemo(() => {
-    return [
-      createDisplayOutputTool(setTranslationPhrase),
-      createRatePronunciationTool(setPronunciationRating),
-      createProvidePronunciationFeedbackTool(setPronunciationFeedback)
-    ];
-  }, [setTranslationPhrase]);
+  const handleSelectLanguage = (code: string) => {
+    setLanguage(code);
+    setScreen('home');
+  };
 
-  useRealtimeAgent(tools);
+  const handleChangeLanguage = () => {
+    clearLanguage();
+    setScreen('language-select');
+  };
 
-  // When translation phrase changes, clear pronunciation feedback & rating.
-  useEffect(() => {
-    setPronunciationFeedback('');
-    setPronunciationRating(0);
-  }, [translationPhrase]);
+  const handleBack = () => {
+    setScreen('home');
+  };
 
-  // If the stars are 3, clear the feedback, as the user has pronounced it well.
-  useEffect(() => {
-    if (pronunciationRating === 3) {
-      setPronunciationFeedback('');
-    }
-  }, [pronunciationRating]);
+  if (screen === 'language-select' || !language) {
+    return <LanguageSelectScreen onSelectLanguage={handleSelectLanguage} />;
+  }
+
+  if (screen === 'practice') {
+    return <PracticeSpeakingScreen language={language} onBack={handleBack} />;
+  }
+
+  if (screen === 'help') {
+    return <HelpSupportScreen language={language} onBack={handleBack} />;
+  }
 
   return (
-    <div className='App'>
-      <AppHeader />
-      <Main>
-        <Output {...translationPhrase} />
-        <PronunciationRating rating={pronunciationRating} />
-        <PronunciationFeedback feedbackText={pronunciationFeedback} />
-      </Main>
-    </div>
+    <HomeScreen
+      language={language}
+      onNavigate={(s) => setScreen(s)}
+      onChangeLanguage={handleChangeLanguage}
+    />
   );
 }
 

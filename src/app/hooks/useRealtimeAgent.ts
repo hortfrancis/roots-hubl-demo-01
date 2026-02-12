@@ -1,29 +1,58 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { RealtimeAgent, RealtimeSession } from '@openai/agents/realtime';
 import { logSessionHistory } from '../utils';
-import { ASSISTANT_INSTRUCTIONS, ASSISTANT_NAME, ASSISTANT_VOICE } from '../agent/config';
+import { ASSISTANT_VOICE } from '../agent/config';
 import type { WorkerAPIResponseData } from '../../types';
 
-// (Agent configuration is defined in `src/app/agent/config.ts`)
+export type RealtimeAgentTools = ConstructorParameters<typeof RealtimeAgent>[0]["tools"];
 
-// To avoid TypeScript errors from using `FunctionTool`
-type RealtimeAgentTools = ConstructorParameters<typeof RealtimeAgent>[0]["tools"];
+export type ConnectionStatus = 'connecting' | 'connected' | 'error';
 
-function useRealtimeAgent(tools: RealtimeAgentTools) {
+interface UseRealtimeAgentOptions {
+  tools: RealtimeAgentTools;
+  instructions: string;
+  initialMessage?: string;
+}
+
+function useRealtimeAgent(options: UseRealtimeAgentOptions) {
+  const { tools, instructions, initialMessage } = options;
   const sessionRef = useRef<RealtimeSession | null>(null);
+  const [isMuted, setIsMuted] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connecting');
+
+  const toggleMute = useCallback(() => {
+    const session = sessionRef.current;
+    if (!session) return;
+
+    setIsMuted(prev => {
+      const newMuted = !prev;
+      // Attempt to mute/unmute the audio track on the session
+      try {
+        // The RealtimeSession may expose the underlying media stream
+        // Try accessing the audio track directly
+        const audioTrack = (session as unknown as { audioTrack?: MediaStreamTrack }).audioTrack;
+        if (audioTrack) {
+          audioTrack.enabled = !newMuted;
+        }
+      } catch {
+        // Fallback: the SDK may not expose the track directly
+        console.warn('Could not toggle audio track directly');
+      }
+      return newMuted;
+    });
+  }, []);
 
   useEffect(() => {
     const agent = new RealtimeAgent({
-      name: ASSISTANT_NAME,
-      instructions: ASSISTANT_INSTRUCTIONS,
-      tools: tools,
+      name: 'Roots',
+      instructions,
+      tools,
       voice: ASSISTANT_VOICE,
-      // More options available, see:
-      // https://openai.github.io/openai-agents-js/openai/agents/realtime/classes/realtimeagent
     });
 
     const session = new RealtimeSession(agent);
     sessionRef.current = session;
+    setConnectionStatus('connecting');
 
     const connectSession = async () => {
       try {
@@ -33,29 +62,29 @@ function useRealtimeAgent(tools: RealtimeAgentTools) {
           throw new Error(result.error || "No data in response");
         }
         await session.connect({ apiKey: result.data.value });
+        setConnectionStatus('connected');
       } catch (error) {
         console.error("Failed to connect session:", error);
+        setConnectionStatus('error');
       }
     };
 
     connectSession()
       .then(() => {
-        // Adding this means the agent isn't waiting for the user to initiate the conversation. 
-        session.sendMessage("[System Message] Conversation started. Please greet the user and introduce yourself.");
+        const msg = initialMessage || "[System Message] Conversation started. Please greet the user and introduce yourself.";
+        session.sendMessage(msg);
       });
 
     session.on('history_updated', (history) => {
-      // Log the session history to the console whenever it updates. 
-      // Expect to see incomplete history items & repetitions as the session progresses. 
       logSessionHistory(history);
     });
 
     return () => {
       session.close();
     };
-  }, [tools]);
+  }, [tools, instructions, initialMessage]);
 
-  return sessionRef;
+  return { sessionRef, isMuted, toggleMute, connectionStatus };
 }
 
 export default useRealtimeAgent;

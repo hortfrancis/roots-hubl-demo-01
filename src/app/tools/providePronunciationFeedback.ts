@@ -6,9 +6,9 @@ const createPronunciationFeedbackTool = (
 ) => {
   return tool({
     name: 'provide_pronunciation_feedback',
-    description: "Provide feedback on the user's pronunciation of Gujarati phrases.",
+    description: "Provide specific feedback on the user's English pronunciation, with <improve> tags around words or sounds that need work.",
     parameters: z.object({
-      feedback: z.string().describe("The pronunciation feedback text, with <improve> tags around words or phrases that need improvement. For example, 'Mane <improve>Gujarātī</improve> bhāṣā śīkhvī <improve>game</improve> chhe.'"),
+      feedback: z.string().describe("Feedback text with <improve> tags. E.g., 'Where is the <improve>nearest</improve> bus stop?'"),
     }),
     async execute({ feedback }) {
       setFeedback(feedback);

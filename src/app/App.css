@@ -1,6 +1,1 @@
-.App {
-  display: flex;
-  flex-direction: column;
-  padding: 2rem;
-  min-height: 100dvh;
-}
+/* App-level styles are now handled by Tailwind in individual components */
