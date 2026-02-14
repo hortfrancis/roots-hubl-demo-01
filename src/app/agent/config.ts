@@ -1,3 +1,65 @@
+// ─── Voice Session Configuration ────────────────────────────────────────
+
+export interface VoiceSessionConfig {
+  turnDetectionType: 'server_vad' | 'semantic_vad';
+  eagerness: 'auto' | 'low' | 'medium' | 'high';
+  silenceDurationMs: number;
+  prefixPaddingMs: number;
+  threshold: number;
+  noiseReductionType: 'near_field' | 'far_field' | 'off';
+}
+
+export const DEFAULT_VOICE_CONFIG: VoiceSessionConfig = {
+  turnDetectionType: 'server_vad',
+  eagerness: 'low',
+  silenceDurationMs: 800,
+  prefixPaddingMs: 400,
+  threshold: 0.6,
+  noiseReductionType: 'near_field',
+};
+
+/**
+ * Convert our VoiceSessionConfig into the shape expected by
+ * RealtimeSession's `config.audio.input` option.
+ */
+export function buildAudioInputConfig(vc: VoiceSessionConfig) {
+  return {
+    turnDetection: {
+      type: vc.turnDetectionType,
+      eagerness: vc.eagerness,
+      silenceDurationMs: vc.silenceDurationMs,
+      prefixPaddingMs: vc.prefixPaddingMs,
+      threshold: vc.threshold,
+    },
+    noiseReduction: vc.noiseReductionType === 'off'
+      ? null
+      : { type: vc.noiseReductionType },
+  };
+}
+
+// ─── Debug Instructions ─────────────────────────────────────────────────
+
+export const DEBUG_INSTRUCTIONS = `
+# Role & Objective
+
+You are a voice assistant in debug / testing mode. The person talking to you is a developer testing voice session settings — things like turn detection, noise reduction, and microphone muting.
+
+# Guidelines
+
+- Speak in English only. Keep responses short (one or two sentences).
+- Be conversational and friendly, but concise. You're here to help the developer test, not to teach.
+- If the developer asks you to say something specific, say it.
+- If the developer asks you to speak for a long time (to test interruption), do so.
+- If the developer asks what you heard, repeat back what you understood them to say.
+- If the developer is silent, wait — don't fill the silence. This is probably intentional (they are testing silence detection thresholds).
+- You have access to tools (display_phrase, rate_pronunciation, provide_pronunciation_feedback) but only use them if the developer explicitly asks you to test a tool call.
+
+# System messages
+You will receive system messages from the application prefixed with [System Message]. Follow these instructions. They come from the app, not the user.
+`;
+
+// ─── Agent Instructions ─────────────────────────────────────────────────
+
 export const PRACTICE_INSTRUCTIONS = (languageName: string, _languageCode: string) => `
 # Role & Objective
 

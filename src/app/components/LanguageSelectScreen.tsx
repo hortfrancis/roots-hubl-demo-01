@@ -4,9 +4,14 @@ interface LanguageSelectScreenProps {
   onSelectLanguage: (code: string) => void;
 }
 
+const NAME = 'roots-language-select-screen';
+
 export default function LanguageSelectScreen({ onSelectLanguage }: LanguageSelectScreenProps) {
   return (
-    <div className="flex flex-col items-center min-h-dvh px-4 py-8">
+    <div
+      className="flex flex-col items-center min-h-dvh px-4 py-8"
+      data-component={NAME}
+    >
       <header className="text-center mb-10">
         <h1 className="text-3xl font-bold text-stone-800 mb-1">
           <span className="mr-2">🌱</span>Roots

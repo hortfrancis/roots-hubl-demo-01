@@ -4,8 +4,9 @@ import LanguageSelectScreen from './components/LanguageSelectScreen';
 import HomeScreen from './components/HomeScreen';
 import PracticeSpeakingScreen from './components/PracticeSpeakingScreen';
 import HelpSupportScreen from './components/HelpSupportScreen';
+import DebugScreen from './components/DebugScreen';
 
-type Screen = 'language-select' | 'home' | 'practice' | 'help';
+type Screen = 'language-select' | 'home' | 'practice' | 'help' | 'debug';
 
 function App() {
   const { language, setLanguage, clearLanguage } = useLanguage();
@@ -35,6 +36,10 @@ function App() {
 
   if (screen === 'help') {
     return <HelpSupportScreen language={language} onBack={handleBack} />;
+  }
+
+  if (screen === 'debug') {
+    return <DebugScreen language={language} onBack={handleBack} />;
   }
 
   return (

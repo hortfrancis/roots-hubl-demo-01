@@ -2,15 +2,21 @@ import type { LanguageConfig } from '../data/languages';
 
 interface HomeScreenProps {
   language: LanguageConfig;
-  onNavigate: (screen: 'practice' | 'help') => void;
+  onNavigate: (screen: 'practice' | 'help' | 'debug') => void;
   onChangeLanguage: () => void;
 }
+
+const NAME = 'roots-home-screen';
 
 export default function HomeScreen({ language, onNavigate, onChangeLanguage }: HomeScreenProps) {
   const { ui, direction } = language;
 
   return (
-    <div className="flex flex-col items-center min-h-dvh px-4 py-8" dir={direction}>
+    <div 
+    className="flex flex-col items-center min-h-dvh px-4 py-8" 
+    dir={direction}
+    data-component={NAME}
+    >
       <header className="text-center mb-10">
         <h1 className="text-3xl font-bold text-stone-800 mb-1">
           <span className="mr-2">🌱</span>Roots
@@ -48,12 +54,19 @@ export default function HomeScreen({ language, onNavigate, onChangeLanguage }: H
         </div>
       </section>
 
-      <footer className="mt-auto pt-8">
+      <footer className="mt-auto pt-8 flex flex-col items-center gap-3">
         <button
           onClick={onChangeLanguage}
           className="text-sm text-stone-400 hover:text-stone-600 underline underline-offset-2 bg-transparent border-none cursor-pointer"
         >
           {ui.changeLanguage}
+        </button>
+        <button
+          onClick={() => onNavigate('debug')}
+          className="text-xs text-stone-300 hover:text-stone-500 bg-transparent border-none cursor-pointer"
+          aria-label="Debug console"
+        >
+          🛠️ Debug
         </button>
       </footer>
     </div>
