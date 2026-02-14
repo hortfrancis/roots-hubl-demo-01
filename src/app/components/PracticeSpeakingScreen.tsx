@@ -7,7 +7,7 @@ import {
   createRatePronunciationTool,
   createProvidePronunciationFeedbackTool,
 } from '../tools';
-import { PRACTICE_INSTRUCTIONS } from '../agent/config';
+import { PRACTICE_INSTRUCTIONS, type VoiceSessionConfig } from '../agent/config';
 import VoiceStatus from './VoiceStatus';
 import MicMuteButton from './MicMuteButton';
 import PhraseCard from './PhraseCard';
@@ -16,10 +16,11 @@ import PronunciationFeedback from './PronunciationFeedback';
 
 interface PracticeSpeakingScreenProps {
   language: LanguageConfig;
+  voiceConfig: VoiceSessionConfig;
   onBack: () => void;
 }
 
-export default function PracticeSpeakingScreen({ language, onBack }: PracticeSpeakingScreenProps) {
+export default function PracticeSpeakingScreen({ language, voiceConfig, onBack }: PracticeSpeakingScreenProps) {
   const { ui, direction } = language;
 
   const [phrase, setPhrase] = useState<PhraseOutput>({
@@ -47,6 +48,7 @@ export default function PracticeSpeakingScreen({ language, onBack }: PracticeSpe
   const { isMuted, toggleMute, connectionStatus } = useRealtimeAgent({
     tools,
     instructions,
+    voiceConfig,
     initialMessage: `[System Message] Conversation started. The user speaks ${language.name}. Greet them in ${language.name}, then begin teaching English phrases.`,
   });
 

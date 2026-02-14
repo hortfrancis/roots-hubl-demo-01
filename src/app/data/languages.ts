@@ -23,6 +23,17 @@ export interface LanguageConfig {
     localProviders: string;
     micMuted: string;
     micUnmuted: string;
+    settings: string;
+    settingsDesc: string;
+    voiceSettings: string;
+    turnDetection: string;
+    eagerness: string;
+    silenceDuration: string;
+    prefixPadding: string;
+    threshold: string;
+    noiseReduction: string;
+    saveSettings: string;
+    resetDefaults: string;
   };
 }
 
@@ -52,6 +63,17 @@ export const LANGUAGES: LanguageConfig[] = [
       localProviders: 'دروس اللغة الإنجليزية بالقرب منك',
       micMuted: 'الميكروفون مكتوم',
       micUnmuted: 'الميكروفون مفعل',
+      settings: 'الإعدادات',
+      settingsDesc: 'تعديل إعدادات الصوت والميكروفون',
+      voiceSettings: 'إعدادات الصوت',
+      turnDetection: 'كشف الدور',
+      eagerness: 'الحساسية',
+      silenceDuration: 'مدة الصمت',
+      prefixPadding: 'وقت الانتظار',
+      threshold: 'الحد الأدنى',
+      noiseReduction: 'تقليل الضوضاء',
+      saveSettings: 'حفظ الإعدادات',
+      resetDefaults: 'إعادة التعيين',
     },
   },
   {
@@ -79,6 +101,17 @@ export const LANGUAGES: LanguageConfig[] = [
       localProviders: "Cours d'anglais près de chez vous",
       micMuted: 'Microphone coupé',
       micUnmuted: 'Microphone activé',
+      settings: 'Paramètres',
+      settingsDesc: 'Ajuster les paramètres audio et microphone',
+      voiceSettings: 'Paramètres vocaux',
+      turnDetection: 'Détection de tour',
+      eagerness: 'Sensibilité',
+      silenceDuration: 'Durée du silence',
+      prefixPadding: 'Délai d\'attente',
+      threshold: 'Seuil',
+      noiseReduction: 'Réduction du bruit',
+      saveSettings: 'Enregistrer',
+      resetDefaults: 'Réinitialiser',
     },
   },
   {
@@ -106,6 +139,17 @@ export const LANGUAGES: LanguageConfig[] = [
       localProviders: 'Englischkurse in Ihrer Nähe',
       micMuted: 'Mikrofon stumm',
       micUnmuted: 'Mikrofon aktiv',
+      settings: 'Einstellungen',
+      settingsDesc: 'Audio- und Mikrofoneinstellungen anpassen',
+      voiceSettings: 'Spracheinstellungen',
+      turnDetection: 'Sprecherkennung',
+      eagerness: 'Empfindlichkeit',
+      silenceDuration: 'Stille-Dauer',
+      prefixPadding: 'Wartezeit',
+      threshold: 'Schwellenwert',
+      noiseReduction: 'Rauschunterdrückung',
+      saveSettings: 'Speichern',
+      resetDefaults: 'Zurücksetzen',
     },
   },
 ];

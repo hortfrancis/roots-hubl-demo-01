@@ -8,7 +8,6 @@ import {
 } from '../tools';
 import {
   DEBUG_INSTRUCTIONS,
-  DEFAULT_VOICE_CONFIG,
   type VoiceSessionConfig,
 } from '../agent/config';
 import type { LanguageConfig } from '../data/languages';
@@ -125,12 +124,14 @@ function HistoryItem({ item }: { item: RealtimeItem }) {
 
 interface DebugScreenProps {
   language: LanguageConfig;
+  savedConfig: VoiceSessionConfig;
+  onSaveConfig: (config: VoiceSessionConfig) => void;
   onBack: () => void;
 }
 
-export default function DebugScreen({ language, onBack }: DebugScreenProps) {
-  // Local config state (not applied until "Apply" is pressed)
-  const [localConfig, setLocalConfig] = useState<VoiceSessionConfig>({ ...DEFAULT_VOICE_CONFIG });
+export default function DebugScreen({ language, savedConfig, onSaveConfig, onBack }: DebugScreenProps) {
+  // Local config state — initialised from user's saved settings (not factory defaults)
+  const [localConfig, setLocalConfig] = useState<VoiceSessionConfig>({ ...savedConfig });
   const [copiedEvents, setCopiedEvents] = useState(false);
   const [copiedHistory, setCopiedHistory] = useState(false);
 
@@ -159,7 +160,7 @@ export default function DebugScreen({ language, onBack }: DebugScreenProps) {
   } = useRealtimeAgent({
     tools,
     instructions: DEBUG_INSTRUCTIONS,
-    voiceConfig: DEFAULT_VOICE_CONFIG,
+    voiceConfig: savedConfig,
     initialMessage: `[System Message] Debug session started. Say hi and let the developer know you're ready for testing.`,
   });
 
@@ -178,14 +179,24 @@ export default function DebugScreen({ language, onBack }: DebugScreenProps) {
     });
   };
 
-  const handleApply = () => {
+  const [savedFeedback, setSavedFeedback] = useState(false);
+
+  // Apply current sliders to the live session (temporary override)
+  const handleApplyToSession = () => {
     updateVoiceConfig(localConfig);
   };
 
-  const handleReset = () => {
-    const defaults = { ...DEFAULT_VOICE_CONFIG };
-    setLocalConfig(defaults);
-    updateVoiceConfig(defaults);
+  // Reset sliders back to what's saved in localStorage
+  const handleResetToSaved = () => {
+    setLocalConfig({ ...savedConfig });
+    updateVoiceConfig(savedConfig);
+  };
+
+  // Persist current sliders as the new user defaults
+  const handleSaveAsDefaults = () => {
+    onSaveConfig(localConfig);
+    setSavedFeedback(true);
+    setTimeout(() => setSavedFeedback(false), 1500);
   };
 
   return (
@@ -294,19 +305,31 @@ export default function DebugScreen({ language, onBack }: DebugScreenProps) {
                 ]}
                 onChange={(v) => setLocalConfig(c => ({ ...c, noiseReductionType: v as VoiceSessionConfig['noiseReductionType'] }))}
               />
-              <div className="flex gap-2 pt-1">
+              <div className="flex flex-col gap-1.5 pt-2">
                 <button
-                  onClick={handleApply}
-                  className="flex-1 py-1.5 text-xs font-medium bg-emerald-600 text-white rounded hover:bg-emerald-700 border-none cursor-pointer"
+                  onClick={handleApplyToSession}
+                  className="w-full py-1.5 text-xs font-medium bg-emerald-600 text-white rounded hover:bg-emerald-700 border-none cursor-pointer"
                 >
-                  Apply
+                  Apply to Session
                 </button>
-                <button
-                  onClick={handleReset}
-                  className="flex-1 py-1.5 text-xs font-medium bg-stone-200 text-stone-600 rounded hover:bg-stone-300 border-none cursor-pointer"
-                >
-                  Reset Defaults
-                </button>
+                <div className="flex gap-1.5">
+                  <button
+                    onClick={handleResetToSaved}
+                    className="flex-1 py-1.5 text-xs font-medium bg-stone-200 text-stone-600 rounded hover:bg-stone-300 border-none cursor-pointer"
+                  >
+                    Reset to Saved
+                  </button>
+                  <button
+                    onClick={handleSaveAsDefaults}
+                    className={`flex-1 py-1.5 text-xs font-medium rounded border-none cursor-pointer ${
+                      savedFeedback
+                        ? 'bg-emerald-100 text-emerald-700'
+                        : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                    }`}
+                  >
+                    {savedFeedback ? '✓ Saved' : 'Save as Defaults'}
+                  </button>
+                </div>
               </div>
             </div>
           )}

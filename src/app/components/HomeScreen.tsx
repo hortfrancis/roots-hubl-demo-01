@@ -2,7 +2,7 @@ import type { LanguageConfig } from '../data/languages';
 
 interface HomeScreenProps {
   language: LanguageConfig;
-  onNavigate: (screen: 'practice' | 'help' | 'debug') => void;
+  onNavigate: (screen: 'practice' | 'help' | 'debug' | 'settings') => void;
   onChangeLanguage: () => void;
 }
 
@@ -60,6 +60,13 @@ export default function HomeScreen({ language, onNavigate, onChangeLanguage }: H
           className="text-sm text-stone-400 hover:text-stone-600 underline underline-offset-2 bg-transparent border-none cursor-pointer"
         >
           {ui.changeLanguage}
+        </button>
+        <button
+          onClick={() => onNavigate('settings')}
+          className="text-xs text-stone-400 hover:text-stone-600 bg-transparent border-none cursor-pointer"
+          aria-label={ui.settings}
+        >
+          ⚙️ {ui.settings}
         </button>
         <button
           onClick={() => onNavigate('debug')}

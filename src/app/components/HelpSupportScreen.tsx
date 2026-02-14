@@ -3,17 +3,18 @@ import type { LanguageConfig } from '../data/languages';
 import type { Provider } from '../data/providers';
 import { useRealtimeAgent } from '../hooks';
 import { createCheckLocalProvidersTool } from '../tools';
-import { HELP_INSTRUCTIONS } from '../agent/config';
+import { HELP_INSTRUCTIONS, type VoiceSessionConfig } from '../agent/config';
 import VoiceStatus from './VoiceStatus';
 import MicMuteButton from './MicMuteButton';
 import ProviderList from './ProviderList';
 
 interface HelpSupportScreenProps {
   language: LanguageConfig;
+  voiceConfig: VoiceSessionConfig;
   onBack: () => void;
 }
 
-export default function HelpSupportScreen({ language, onBack }: HelpSupportScreenProps) {
+export default function HelpSupportScreen({ language, voiceConfig, onBack }: HelpSupportScreenProps) {
   const { ui, direction } = language;
 
   const [providers, setProviders] = useState<Provider[]>([]);
@@ -31,6 +32,7 @@ export default function HelpSupportScreen({ language, onBack }: HelpSupportScree
   const { isMuted, toggleMute, connectionStatus } = useRealtimeAgent({
     tools,
     instructions,
+    voiceConfig,
     initialMessage: `[System Message] Conversation started. The user speaks ${language.name}. Greet them in ${language.name} and ask how you can help them find English classes or support services.`,
   });
 
