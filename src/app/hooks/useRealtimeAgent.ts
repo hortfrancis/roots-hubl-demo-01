@@ -148,45 +148,51 @@ function useRealtimeAgent(options: UseRealtimeAgentOptions) {
 
     // ── Event listeners ──────────────────────────────────────────
 
+    // SDK-level events (not available via transport_event)
     session.on('history_updated', (h) => {
       logSessionHistory(h);
       setHistory([...h]);
       refreshUsage();
     });
 
-    session.on('agent_start', () => {
-      addEvent('agent_start');
-      refreshUsage();
-    });
-
-    session.on('agent_end', () => {
-      addEvent('agent_end');
-      refreshUsage();
-    });
-
-    session.on('audio_start', () => {
-      addEvent('audio_start', 'Agent speaking');
-    });
-
-    session.on('audio_stopped', () => {
-      addEvent('audio_stopped', 'Agent stopped');
-    });
-
-    session.on('audio_interrupted', () => {
-      addEvent('audio_interrupted', 'Agent interrupted');
-    });
-
     session.on('agent_tool_start', (_ctx, _agent, tool) => {
-      addEvent('tool_start', tool.name);
+      addEvent('agent_tool_start', tool.name);
     });
 
     session.on('agent_tool_end', (_ctx, _agent, tool, result) => {
       const short = typeof result === 'string' ? result.slice(0, 80) : '';
-      addEvent('tool_end', `${tool.name}: ${short}`);
+      addEvent('agent_tool_end', `${tool.name}: ${short}`);
     });
 
     session.on('error', (err) => {
       addEvent('error', JSON.stringify(err));
+    });
+
+    // Raw transport events — logs everything the OpenAI Realtime API sends,
+    // including input_audio_buffer.speech_started, speech_stopped, response.*,
+    // session.updated, etc.
+    session.on('transport_event', (event) => {
+      const type = (event as { type?: string }).type ?? 'unknown';
+
+      // Skip very noisy delta events to keep the log readable
+      if (type.includes('.delta')) return;
+
+      // Extract useful detail for certain event types
+      let detail: string | undefined;
+      const e = event as Record<string, unknown>;
+
+      if (type === 'input_audio_buffer.speech_started' && typeof e.audio_start_ms === 'number') {
+        detail = `at ${e.audio_start_ms}ms`;
+      } else if (type === 'input_audio_buffer.speech_stopped' && typeof e.audio_end_ms === 'number') {
+        detail = `at ${e.audio_end_ms}ms`;
+      } else if (type === 'response.done' || type === 'response.created') {
+        detail = e.response && typeof (e.response as Record<string, unknown>).id === 'string'
+          ? (e.response as Record<string, unknown>).id as string
+          : undefined;
+      }
+
+      addEvent(type, detail);
+      refreshUsage();
     });
 
     return () => {

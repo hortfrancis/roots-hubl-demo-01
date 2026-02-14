@@ -131,6 +131,8 @@ interface DebugScreenProps {
 export default function DebugScreen({ language, onBack }: DebugScreenProps) {
   // Local config state (not applied until "Apply" is pressed)
   const [localConfig, setLocalConfig] = useState<VoiceSessionConfig>({ ...DEFAULT_VOICE_CONFIG });
+  const [copiedEvents, setCopiedEvents] = useState(false);
+  const [copiedHistory, setCopiedHistory] = useState(false);
 
   // Practice mode tools + state (for testing the full flow)
   const [phrase, setPhrase] = useState<PhraseOutput>({ englishText: '', phoneticText: '', nativeText: '' });
@@ -161,11 +163,19 @@ export default function DebugScreen({ language, onBack }: DebugScreenProps) {
     initialMessage: `[System Message] Debug session started. Say hi and let the developer know you're ready for testing.`,
   });
 
-  // Which panel is currently expanded (accordion for mobile)
-  const [openPanel, setOpenPanel] = useState<'config' | 'status' | 'events' | 'history' | null>('config');
+  // Which panels are expanded (multiple can be open at once)
+  const [openPanels, setOpenPanels] = useState<Set<string>>(() => new Set(['config']));
 
-  const togglePanel = (panel: typeof openPanel) => {
-    setOpenPanel(prev => prev === panel ? null : panel);
+  const togglePanel = (panel: string) => {
+    setOpenPanels(prev => {
+      const next = new Set(prev);
+      if (next.has(panel)) {
+        next.delete(panel);
+      } else {
+        next.add(panel);
+      }
+      return next;
+    });
   };
 
   const handleApply = () => {
@@ -223,9 +233,9 @@ export default function DebugScreen({ language, onBack }: DebugScreenProps) {
             className="w-full text-left px-3 py-2 bg-stone-100 text-xs font-bold text-stone-600 flex justify-between items-center cursor-pointer border-none"
           >
             Voice Config
-            <span>{openPanel === 'config' ? '▼' : '▶'}</span>
+            <span>{openPanels.has('config') ? '▼' : '▶'}</span>
           </button>
-          {openPanel === 'config' && (
+          {openPanels.has('config') && (
             <div className="px-3 py-3 space-y-3 bg-white">
               <ConfigSelect
                 label="Turn Detection"
@@ -309,9 +319,9 @@ export default function DebugScreen({ language, onBack }: DebugScreenProps) {
             className="w-full text-left px-3 py-2 bg-stone-100 text-xs font-bold text-stone-600 flex justify-between items-center cursor-pointer border-none"
           >
             Session Status
-            <span>{openPanel === 'status' ? '▼' : '▶'}</span>
+            <span>{openPanels.has('status') ? '▼' : '▶'}</span>
           </button>
-          {openPanel === 'status' && (
+          {openPanels.has('status') && (
             <div className="px-3 py-3 space-y-2 bg-white text-xs">
               <div className="flex justify-between">
                 <span className="text-stone-500">Connection</span>
@@ -356,22 +366,40 @@ export default function DebugScreen({ language, onBack }: DebugScreenProps) {
             className="w-full text-left px-3 py-2 bg-stone-100 text-xs font-bold text-stone-600 flex justify-between items-center cursor-pointer border-none"
           >
             Event Log ({eventLog.length})
-            <span>{openPanel === 'events' ? '▼' : '▶'}</span>
+            <span>{openPanels.has('events') ? '▼' : '▶'}</span>
           </button>
-          {openPanel === 'events' && (
-            <div className="bg-stone-900 text-green-400 font-mono text-[10px] leading-tight max-h-64 overflow-y-auto p-2">
-              {eventLog.length === 0 && (
-                <div className="text-stone-500 italic">No events yet...</div>
-              )}
-              {eventLog.map((entry, i) => (
-                <div key={i} className="py-0.5">
-                  <span className="text-stone-500">{entry.time}</span>{' '}
-                  <span className="text-yellow-300">{entry.event}</span>
-                  {entry.detail && (
-                    <span className="text-green-300 ml-1">{entry.detail.slice(0, 100)}</span>
-                  )}
-                </div>
-              ))}
+          {openPanels.has('events') && (
+            <div>
+              <div className="flex justify-end px-2 py-1 bg-stone-800">
+                <button
+                  onClick={() => {
+                    const text = eventLog
+                      .map(e => `${e.time} ${e.event}${e.detail ? ' ' + e.detail : ''}`)
+                      .join('\n');
+                    navigator.clipboard.writeText(text).then(() => {
+                      setCopiedEvents(true);
+                      setTimeout(() => setCopiedEvents(false), 1500);
+                    });
+                  }}
+                  className="text-[10px] text-stone-400 hover:text-green-400 bg-transparent border-none cursor-pointer"
+                >
+                  {copiedEvents ? '✓ Copied' : 'Copy'}
+                </button>
+              </div>
+              <div className="bg-stone-900 text-green-400 font-mono text-[10px] leading-tight max-h-64 overflow-y-auto p-2">
+                {eventLog.length === 0 && (
+                  <div className="text-stone-500 italic">No events yet...</div>
+                )}
+                {eventLog.map((entry, i) => (
+                  <div key={i} className="py-0.5">
+                    <span className="text-stone-500">{entry.time}</span>{' '}
+                    <span className="text-yellow-300">{entry.event}</span>
+                    {entry.detail && (
+                      <span className="text-green-300 ml-1">{entry.detail.slice(0, 100)}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -383,16 +411,46 @@ export default function DebugScreen({ language, onBack }: DebugScreenProps) {
             className="w-full text-left px-3 py-2 bg-stone-100 text-xs font-bold text-stone-600 flex justify-between items-center cursor-pointer border-none"
           >
             Conversation History ({history.length})
-            <span>{openPanel === 'history' ? '▼' : '▶'}</span>
+            <span>{openPanels.has('history') ? '▼' : '▶'}</span>
           </button>
-          {openPanel === 'history' && (
-            <div className="max-h-80 overflow-y-auto p-2 bg-white space-y-1.5">
-              {history.length === 0 && (
-                <div className="text-xs text-stone-400 italic">No history yet...</div>
-              )}
-              {history.map((item, i) => (
-                <HistoryItem key={i} item={item} />
-              ))}
+          {openPanels.has('history') && (
+            <div>
+              <div className="flex justify-end px-2 py-1 bg-stone-50 border-b border-stone-200">
+                <button
+                  onClick={() => {
+                    const text = history.map(item => {
+                      if (item.type === 'message') {
+                        const role = item.role === 'user' ? 'You' : item.role === 'assistant' ? 'Roots' : 'System';
+                        const content = item.content?.[0]
+                          ? ('transcript' in item.content[0] ? item.content[0].transcript : null)
+                            ?? ('text' in item.content[0] ? item.content[0].text : null)
+                            ?? ''
+                          : '';
+                        return `[${role}] ${content}`;
+                      }
+                      if (item.type === 'function_call') {
+                        return `[Tool: ${item.name}] args: ${item.arguments ?? ''} → ${item.output ?? ''}`;
+                      }
+                      return `[${item.type}]`;
+                    }).join('\n');
+                    navigator.clipboard.writeText(text).then(() => {
+                      setCopiedHistory(true);
+                      setTimeout(() => setCopiedHistory(false), 1500);
+                    });
+                  }}
+                  className="text-[10px] text-stone-400 hover:text-stone-600 bg-transparent border-none cursor-pointer"
+                >
+                  {copiedHistory ? '✓ Copied' : 'Copy'}
+                </button>
+              </div>
+              <div className="max-h-80 overflow-y-auto p-2 bg-white space-y-1.5">
+                {history.length === 0 && (
+                  <div className="text-xs text-stone-400 italic">No history yet...</div>
+                )}
+                {history.map((item, i) => (
+                  <HistoryItem key={i} item={item} />
+                ))}
+              </div>
             </div>
           )}
         </div>
