@@ -1,4 +1,4 @@
-# Conversational Gujarati - prototype 01
+# Roots - Demo for HubL (Feb 2026)
 
 Deployed live at:  [conversational-gujarati-prototype-01.alex-hortfrancis.workers.dev](https://conversational-gujarati-prototype-01.alex-hortfrancis.workers.dev/)
 
