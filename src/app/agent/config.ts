@@ -12,10 +12,10 @@ export interface VoiceSessionConfig {
 export const DEFAULT_VOICE_CONFIG: VoiceSessionConfig = {
   turnDetectionType: 'server_vad',
   eagerness: 'low',
-  silenceDurationMs: 800,
+  silenceDurationMs: 1200,
   prefixPaddingMs: 400,
-  threshold: 0.6,
-  noiseReductionType: 'near_field',
+  threshold: 0.75,
+  noiseReductionType: 'far_field',
 };
 
 /**
