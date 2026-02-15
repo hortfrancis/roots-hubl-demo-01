@@ -148,10 +148,12 @@ function useManualVoiceSession(options: UseManualVoiceSessionOptions): UseManual
     setFeedback(null);
     pressEndFiredRef.current = false; // reset guard for new press
 
-    // Interrupt assistant if currently speaking
-    if (statusRef.current === 'speaking') {
+    // Always interrupt on press — cancels any in-progress response and
+    // clears the audio output buffer so the user doesn't talk over the AI.
+    // Safe to call even if nothing is playing (sends a no-op cancel).
+    if (statusRef.current !== 'listening') {
       session.interrupt();
-      addEvent('user_interrupt', undefined, 'client');
+      addEvent('user_interrupt', `was: ${statusRef.current}`, 'client');
     }
 
     // Unmute — audio starts flowing to server input buffer
@@ -307,6 +309,9 @@ function useManualVoiceSession(options: UseManualVoiceSessionOptions): UseManual
       refreshUsage();
 
       // ── State machine transitions ─────────────────────────────────────
+      // IMPORTANT: Never override 'listening' — the user is holding the
+      // button and any server events (from a cancelled/interrupted response)
+      // must not stomp the listening state.
 
       if (type === 'response.created') {
         hadAudioInResponseRef.current = false;
@@ -314,11 +319,13 @@ function useManualVoiceSession(options: UseManualVoiceSessionOptions): UseManual
 
       if (type === 'output_audio_buffer.started') {
         hadAudioInResponseRef.current = true;
-        setStatus('speaking');
+        setStatus(prev => prev === 'listening' ? prev : 'speaking');
       }
 
       if (type === 'response.done') {
         setStatus(prev => {
+          // Don't override listening — user is holding the button
+          if (prev === 'listening') return prev;
           if (prev === 'thinking' && !hadAudioInResponseRef.current) {
             // Response completed without any audio output
             setFeedback("Didn't catch that. Hold to speak again.");
@@ -336,7 +343,8 @@ function useManualVoiceSession(options: UseManualVoiceSessionOptions): UseManual
 
   // ── Derived state ─────────────────────────────────────────────────────
 
-  const speakDisabled = connectionStatus !== 'connected' || status === 'thinking';
+  // Only disable the button when not connected — user can interrupt at any time
+  const speakDisabled = connectionStatus !== 'connected';
   const isMuted = status !== 'listening';
 
   return {
