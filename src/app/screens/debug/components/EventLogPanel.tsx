@@ -12,7 +12,10 @@ export default function EventLogPanel({ eventLog, defaultOpen = false }: EventLo
 
   const handleCopy = () => {
     const text = eventLog
-      .map(e => `${e.time} ${e.event}${e.detail ? ' ' + e.detail : ''}`)
+      .map(e => {
+        const tag = e.source === 'server' ? '[S]' : e.source === 'client' ? '[C]' : '[?]';
+        return `${e.time} ${tag} ${e.event}${e.detail ? ' ' + e.detail : ''}`;
+      })
       .join('\n');
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
@@ -43,15 +46,25 @@ export default function EventLogPanel({ eventLog, defaultOpen = false }: EventLo
             {eventLog.length === 0 && (
               <div className="text-stone-500 italic">No events yet...</div>
             )}
-            {eventLog.map((entry, i) => (
-              <div key={i} className="py-0.5">
-                <span className="text-stone-500">{entry.time}</span>{' '}
-                <span className="text-yellow-300">{entry.event}</span>
-                {entry.detail && (
-                  <span className="text-green-300 ml-1">{entry.detail.slice(0, 100)}</span>
-                )}
-              </div>
-            ))}
+            {eventLog.map((entry, i) => {
+              const isServer = entry.source === 'server';
+              const isClient = entry.source === 'client';
+              const isUnknown = !isServer && !isClient;
+              const tag = isServer ? '[S]' : isClient ? '[C]' : '[?]';
+              const tagColor = isUnknown ? 'text-red-500' : isServer ? 'text-stone-500' : 'text-cyan-400';
+              const eventColor = isUnknown ? 'text-red-400' : isServer ? 'text-yellow-300' : 'text-cyan-300';
+              const detailColor = isUnknown ? 'text-red-300' : isServer ? 'text-green-300' : 'text-cyan-200';
+              return (
+                <div key={i} className="py-0.5">
+                  <span className="text-stone-500">{entry.time}</span>{' '}
+                  <span className={tagColor}>{tag}</span>{' '}
+                  <span className={eventColor}>{entry.event}</span>
+                  {entry.detail && (
+                    <span className={`ml-1 ${detailColor}`}>{entry.detail.slice(0, 100)}</span>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

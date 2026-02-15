@@ -28,7 +28,6 @@ export default function PressToSpeak({
         disabled={disabled}
         onPointerDown={disabled ? undefined : onPressStart}
         onPointerUp={disabled ? undefined : onPressEnd}
-        onPointerLeave={disabled ? undefined : onPressEnd}
         className={clsx(
           'rounded-full aspect-square w-full max-w-[120px]',
           'flex items-center justify-center',

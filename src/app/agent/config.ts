@@ -7,6 +7,7 @@ export interface VoiceSessionConfig {
   prefixPaddingMs: number;
   threshold: number;
   noiseReductionType: 'near_field' | 'far_field' | 'off';
+  commitDelayMs: number;
 }
 
 export const DEFAULT_VOICE_CONFIG: VoiceSessionConfig = {
@@ -16,6 +17,7 @@ export const DEFAULT_VOICE_CONFIG: VoiceSessionConfig = {
   prefixPaddingMs: 400,
   threshold: 0.75,
   noiseReductionType: 'far_field',
+  commitDelayMs: 500,
 };
 
 /**

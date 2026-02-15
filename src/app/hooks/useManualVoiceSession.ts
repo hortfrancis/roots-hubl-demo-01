@@ -18,6 +18,7 @@ export type ConnectionStatus = 'connecting' | 'connected' | 'error';
 
 export interface EventLogEntry {
   time: string;
+  source: 'client' | 'server';
   event: string;
   detail?: string;
 }
@@ -79,17 +80,23 @@ function useManualVoiceSession(options: UseManualVoiceSessionOptions): UseManual
   // Ref to track current status inside event callbacks (avoids stale closures)
   const statusRef = useRef<ConvoStatusValue>('idle');
   statusRef.current = status;
+  // Ref to track commit delay config (avoids stale closures in setTimeout)
+  const commitDelayRef = useRef(voiceConfig.commitDelayMs);
+  commitDelayRef.current = voiceConfig.commitDelayMs;
+  // Guard ref to prevent double-fire of handlePressEnd (pointer events can
+  // fire both pointerup and pointerleave on the same gesture)
+  const pressEndFiredRef = useRef(false);
 
   // ── Event log helper ──────────────────────────────────────────────────
 
-  const addEvent = useCallback((event: string, detail?: string) => {
+  const addEvent = useCallback((event: string, detail: string | undefined, source: 'client' | 'server') => {
     const time = new Date().toLocaleTimeString('en-GB', {
       hour12: false,
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
     });
-    setEventLog(prev => [{ time, event, detail }, ...prev].slice(0, 200));
+    setEventLog(prev => [{ time, source, event, detail }, ...prev].slice(0, 200));
   }, []);
 
   // ── Usage tracking ───────────────────────────────────────────────────
@@ -119,12 +126,17 @@ function useManualVoiceSession(options: UseManualVoiceSessionOptions): UseManual
     session.transport.sendEvent({
       type: 'session.update',
       session: {
-        input_audio_transcription: { model: 'gpt-4o-mini-transcribe' },
-        turn_detection: null, // always keep VAD disabled in manual mode
-        ...(audioInput.noiseReduction ? { input_audio_noise_reduction: audioInput.noiseReduction } : {}),
+        type: 'realtime', // required by GA API
+        audio: {
+          input: {
+            transcription: { model: 'gpt-4o-mini-transcribe' },
+            turn_detection: null, // always keep VAD disabled in manual mode
+            ...(audioInput.noiseReduction ? { noise_reduction: audioInput.noiseReduction } : {}),
+          },
+        },
       },
     });
-    addEvent('config_updated', `noise_reduction: ${config.noiseReductionType}`);
+    addEvent('config_updated', `noise_reduction: ${config.noiseReductionType}`, 'client');
   }, [addEvent]);
 
   // ── Button handlers ───────────────────────────────────────────────────
@@ -134,18 +146,19 @@ function useManualVoiceSession(options: UseManualVoiceSessionOptions): UseManual
     if (!session || connectionStatus !== 'connected') return;
 
     setFeedback(null);
+    pressEndFiredRef.current = false; // reset guard for new press
 
     // Interrupt assistant if currently speaking
     if (statusRef.current === 'speaking') {
       session.interrupt();
-      addEvent('user_interrupt');
+      addEvent('user_interrupt', undefined, 'client');
     }
 
     // Unmute — audio starts flowing to server input buffer
     session.mute(false);
     setStatus('listening');
     setIsPressed(true);
-    addEvent('press_start', 'unmuted, listening');
+    addEvent('press_start', 'unmuted, listening', 'client');
   }, [connectionStatus, addEvent]);
 
   const handlePressEnd = useCallback(() => {
@@ -157,14 +170,23 @@ function useManualVoiceSession(options: UseManualVoiceSessionOptions): UseManual
     // Only commit if we were actually listening
     if (statusRef.current !== 'listening') return;
 
-    // Mute — stop audio flow
-    session.mute(true);
-    setStatus('thinking');
-    addEvent('press_end', 'muted, committing');
+    // Guard against double-fire (pointerup + pointerleave on same gesture)
+    if (pressEndFiredRef.current) return;
+    pressEndFiredRef.current = true;
 
-    // Commit the accumulated audio buffer, then request a response
-    session.transport.sendEvent({ type: 'input_audio_buffer.commit' });
-    session.transport.sendEvent({ type: 'response.create' });
+    addEvent('press_end', 'buffering tail audio', 'client');
+
+    // Short delay to let trailing WebRTC audio reach the server buffer
+    // before we mute and commit — prevents clipping the end of speech
+    setTimeout(() => {
+      if (!sessionRef.current) return;
+      sessionRef.current.mute(true);
+      setStatus('thinking');
+      addEvent('commit', 'muted, committing', 'client');
+
+      sessionRef.current.transport.sendEvent({ type: 'input_audio_buffer.commit' });
+      sessionRef.current.transport.sendEvent({ type: 'response.create' });
+    }, commitDelayRef.current);
   }, [addEvent]);
 
   // ── Session lifecycle ─────────────────────────────────────────────────
@@ -177,18 +199,24 @@ function useManualVoiceSession(options: UseManualVoiceSessionOptions): UseManual
       voice: ASSISTANT_VOICE,
     });
 
-    const audioInput = buildAudioInputConfig(voiceConfig);
-
     const session = new RealtimeSession(agent, {
       config: {
         audio: {
-          input: audioInput,
+          input: {
+            // Only pass noise reduction — do NOT pass turnDetection here.
+            // The SDK's internal updateSessionConfig() during connect() would
+            // send any turnDetection config to the server, re-enabling VAD.
+            // We disable VAD explicitly via raw transport event after connect.
+            noiseReduction: voiceConfig.noiseReductionType === 'off'
+              ? null
+              : { type: voiceConfig.noiseReductionType },
+          },
         },
       },
     });
     sessionRef.current = session;
     setConnectionStatus('connecting');
-    addEvent('session_created', `voice: ${ASSISTANT_VOICE}`);
+    addEvent('session_created', `voice: ${ASSISTANT_VOICE}`, 'client');
 
     const connectSession = async () => {
       try {
@@ -199,32 +227,37 @@ function useManualVoiceSession(options: UseManualVoiceSessionOptions): UseManual
         }
         await session.connect({ apiKey: result.data.value });
         setConnectionStatus('connected');
-        addEvent('connected');
+        addEvent('connected', undefined, 'client');
 
         // ── Manual mode setup ──
         // 1. Start muted so entering the screen doesn't trigger listening
         session.mute(true);
-        addEvent('muted_on_connect');
+        addEvent('muted_on_connect', undefined, 'client');
 
         // 2. Disable VAD via raw event (SDK's updateSessionConfig can't send null)
         session.transport.sendEvent({
           type: 'session.update',
           session: {
-            input_audio_transcription: { model: 'gpt-4o-mini-transcribe' },
-            turn_detection: null,
+            type: 'realtime', // required by GA API
+            audio: {
+              input: {
+                transcription: { model: 'gpt-4o-mini-transcribe' },
+                turn_detection: null,
+              },
+            },
           },
         });
-        addEvent('vad_disabled', 'turn_detection: null');
+        addEvent('vad_disabled', 'turn_detection: null', 'client');
       } catch (error) {
         console.error('Failed to connect session:', error);
         setConnectionStatus('error');
-        addEvent('connection_error', error instanceof Error ? error.message : 'Unknown');
+        addEvent('connection_error', error instanceof Error ? error.message : 'Unknown', 'client');
       }
     };
 
     connectSession().then(() => {
       session.sendMessage(initialMessage);
-      addEvent('initial_message_sent');
+      addEvent('initial_message_sent', undefined, 'client');
     });
 
     // ── SDK-level event listeners ───────────────────────────────────────
@@ -236,16 +269,16 @@ function useManualVoiceSession(options: UseManualVoiceSessionOptions): UseManual
     });
 
     session.on('agent_tool_start', (_ctx, _agent, tool) => {
-      addEvent('agent_tool_start', tool.name);
+      addEvent('agent_tool_start', tool.name, 'server');
     });
 
     session.on('agent_tool_end', (_ctx, _agent, tool, result) => {
       const short = typeof result === 'string' ? result.slice(0, 80) : '';
-      addEvent('agent_tool_end', `${tool.name}: ${short}`);
+      addEvent('agent_tool_end', `${tool.name}: ${short}`, 'server');
     });
 
     session.on('error', (err) => {
-      addEvent('error', JSON.stringify(err));
+      addEvent('error', JSON.stringify(err), 'server');
     });
 
     // ── Transport events → status state machine ────────────────────────
@@ -270,7 +303,7 @@ function useManualVoiceSession(options: UseManualVoiceSessionOptions): UseManual
           : undefined;
       }
 
-      addEvent(type, detail);
+      addEvent(type, detail, 'server');
       refreshUsage();
 
       // ── State machine transitions ─────────────────────────────────────
@@ -297,7 +330,7 @@ function useManualVoiceSession(options: UseManualVoiceSessionOptions): UseManual
 
     return () => {
       session.close();
-      addEvent('session_closed');
+      addEvent('session_closed', undefined, 'client');
     };
   }, [tools, instructions, initialMessage, voiceConfig, addEvent, refreshUsage]);
 

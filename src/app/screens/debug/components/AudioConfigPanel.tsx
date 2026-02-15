@@ -45,6 +45,19 @@ export default function AudioConfigPanel({
               <option value="off">Off</option>
             </select>
           </div>
+          <div className="flex items-center justify-between gap-2">
+            <label className="text-xs text-stone-600 shrink-0">Commit Delay</label>
+            <select
+              value={localConfig.commitDelayMs}
+              onChange={(e) => onConfigChange({ ...localConfig, commitDelayMs: Number(e.target.value) })}
+              className="text-xs bg-white border border-stone-200 rounded px-2 py-1 min-w-[100px]"
+            >
+              <option value={200}>200ms</option>
+              <option value={500}>500ms</option>
+              <option value={750}>750ms</option>
+              <option value={1000}>1000ms</option>
+            </select>
+          </div>
           <div className="flex flex-col gap-1.5 pt-2">
             <button
               onClick={onApplyToSession}

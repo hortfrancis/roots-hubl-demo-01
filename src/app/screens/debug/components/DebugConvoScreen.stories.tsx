@@ -24,12 +24,12 @@ const sampleUsage: SessionUsage = {
 };
 
 const sampleEventLog: EventLogEntry[] = [
-  { time: '14:32:01', event: 'session_created', detail: 'voice: coral' },
-  { time: '14:32:02', event: 'connected' },
-  { time: '14:32:02', event: 'muted_on_connect' },
-  { time: '14:32:02', event: 'vad_disabled', detail: 'turn_detection: null' },
-  { time: '14:32:03', event: 'initial_message_sent' },
-  { time: '14:32:05', event: 'response.done', detail: 'resp_abc123' },
+  { time: '14:32:01', source: 'client', event: 'session_created', detail: 'voice: coral' },
+  { time: '14:32:02', source: 'client', event: 'connected' },
+  { time: '14:32:02', source: 'client', event: 'muted_on_connect' },
+  { time: '14:32:02', source: 'client', event: 'vad_disabled', detail: 'turn_detection: null' },
+  { time: '14:32:03', source: 'client', event: 'initial_message_sent' },
+  { time: '14:32:05', source: 'server', event: 'response.done', detail: 'resp_abc123' },
 ];
 
 const sampleHistory: RealtimeItem[] = [
