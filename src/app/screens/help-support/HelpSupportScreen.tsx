@@ -4,7 +4,7 @@ import type { Provider } from '../../data/providers';
 import { useManualVoiceSession } from '../../hooks';
 import { createCheckLocalProvidersTool } from '../../tools';
 import { HELP_INSTRUCTIONS, type VoiceSessionConfig } from '../../agent/config';
-import ConvoScreenLayout from '../../components/ConvoScreenLayout';
+import AppLayout from '../../components/AppLayout';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import ConvoStatus from '../../components/ConvoStatus';
@@ -48,7 +48,7 @@ export default function HelpSupportScreen({ language, voiceConfig, onBack }: Hel
   });
 
   return (
-    <ConvoScreenLayout
+    <AppLayout
       header={
         <Header
           title={ui.helpSupport ?? 'Help & Support'}

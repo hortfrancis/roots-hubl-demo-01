@@ -54,7 +54,7 @@ export interface OpenAIEphemeralApiKeyResponseData {
  * Represents the response from the Worker backend API.
  * 
  * - Endpoint defined in `src/worker/index.ts`
- * - Endpoint called in `src/app/hooks/useRealtimeAgent.ts`
+ * - Endpoint called in `src/app/hooks/useManualVoiceSession.ts`
  */
 export interface WorkerAPIResponseData {
   /** The data returned from the API. */

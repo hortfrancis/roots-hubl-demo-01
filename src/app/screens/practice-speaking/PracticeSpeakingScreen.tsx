@@ -1,15 +1,18 @@
 import { useMemo, useState, useEffect } from 'react';
 import type { LanguageConfig } from '../../data/languages';
 import type { PhraseOutput } from '../../tools/displayPhrase';
-import { useRealtimeAgent } from '../../hooks';
+import { useManualVoiceSession } from '../../hooks';
 import {
   createDisplayPhraseTool,
   createRatePronunciationTool,
   createProvidePronunciationFeedbackTool,
 } from '../../tools';
 import { PRACTICE_INSTRUCTIONS, type VoiceSessionConfig } from '../../agent/config';
-import VoiceStatus from '../../components/VoiceStatus';
-import MicMuteButton from '../../components/MicMuteButton';
+import AppLayout from '../../components/AppLayout';
+import Header from '../../components/Header';
+import Footer from '../../components/Footer';
+import ConvoStatus from '../../components/ConvoStatus';
+import PressToSpeak from '../../components/PressToSpeak';
 import PhraseCard from './components/PhraseCard';
 import PronunciationRating from './components/PronunciationRating';
 import PronunciationFeedback from './components/PronunciationFeedback';
@@ -45,7 +48,13 @@ export default function PracticeSpeakingScreen({ language, voiceConfig, onBack }
     [language.name]
   );
 
-  const { isMuted, toggleMute, connectionStatus } = useRealtimeAgent({
+  const {
+    status,
+    isPressed,
+    handlePressStart,
+    handlePressEnd,
+    speakDisabled,
+  } = useManualVoiceSession({
     tools,
     instructions,
     voiceConfig,
@@ -66,44 +75,47 @@ export default function PracticeSpeakingScreen({ language, voiceConfig, onBack }
   }, [pronunciationRating]);
 
   return (
-    <div className="flex flex-col min-h-dvh px-4 py-6" dir={direction}>
-      <button
-        onClick={onBack}
-        className="self-start text-sm text-stone-500 hover:text-stone-700 mb-4 bg-transparent border-none cursor-pointer"
-      >
-        ← {ui.back}
-      </button>
-
-      <div className="flex flex-col items-center gap-6 flex-1">
-        <VoiceStatus
-          status={connectionStatus}
-          labels={{ connecting: ui.connecting, listening: ui.listening }}
+    <AppLayout
+      header={
+        <Header
+          title={ui.practiceSpeaking}
+          action={
+            <button
+              onClick={onBack}
+              className="text-sm text-gray-600 hover:text-gray-900 bg-transparent border-none cursor-pointer"
+            >
+              {ui.endSession}
+            </button>
+          }
         />
+      }
+      main={
+        <div className="flex flex-col items-center gap-6 px-4 py-6" dir={direction}>
+          <PhraseCard
+            englishText={phrase.englishText}
+            phoneticText={phrase.phoneticText}
+            nativeText={phrase.nativeText}
+            nativeLanguageLabel={language.nativeName}
+            direction={direction}
+          />
 
-        <MicMuteButton
-          isMuted={isMuted}
-          onToggle={toggleMute}
-          labels={{ muted: ui.micMuted, unmuted: ui.micUnmuted }}
+          <PronunciationRating rating={pronunciationRating} />
+          <PronunciationFeedback feedbackText={pronunciationFeedback} />
+        </div>
+      }
+      footer={
+        <Footer
+          statusPanel={<ConvoStatus status={status} />}
+          actionPanel={
+            <PressToSpeak
+              isPressed={isPressed}
+              onPressStart={handlePressStart}
+              onPressEnd={handlePressEnd}
+              disabled={speakDisabled}
+            />
+          }
         />
-
-        <PhraseCard
-          englishText={phrase.englishText}
-          phoneticText={phrase.phoneticText}
-          nativeText={phrase.nativeText}
-          nativeLanguageLabel={language.nativeName}
-          direction={direction}
-        />
-
-        <PronunciationRating rating={pronunciationRating} />
-        <PronunciationFeedback feedbackText={pronunciationFeedback} />
-      </div>
-
-      <button
-        onClick={onBack}
-        className="mt-6 w-full py-3 text-sm font-medium text-stone-500 bg-stone-100 hover:bg-stone-200 rounded-xl border-none cursor-pointer transition-colors"
-      >
-        {ui.endSession}
-      </button>
-    </div>
+      }
+    />
   );
 }

@@ -10,7 +10,7 @@ import {
 import type { ConvoStatusValue } from '../components/ConvoStatus';
 import type { WorkerAPIResponseData } from '../../types';
 
-// ── Reused types (same shape as useRealtimeAgent) ───────────────────────
+// ── Types ────────────────────────────────────────────────────────────────
 
 export type RealtimeAgentTools = ConstructorParameters<typeof RealtimeAgent>[0]['tools'];
 

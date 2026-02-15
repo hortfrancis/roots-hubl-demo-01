@@ -11,7 +11,7 @@ import {
 } from '../../agent/config';
 import type { LanguageConfig } from '../../data/languages';
 import type { PhraseOutput } from '../../tools/displayPhrase';
-import ConvoScreenLayout from '../../components/ConvoScreenLayout';
+import AppLayout from '../../components/AppLayout';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import ConvoStatus from '../../components/ConvoStatus';
@@ -81,7 +81,7 @@ export default function DebugScreen({ language, savedConfig, onSaveConfig, onBac
   };
 
   return (
-    <ConvoScreenLayout
+    <AppLayout
       header={
         <Header
           title="Debug Console"

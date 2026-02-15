@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import type { RealtimeItem } from '@openai/agents/realtime';
-import ConvoScreenLayout from '../../../components/ConvoScreenLayout';
+import AppLayout from '../../../components/AppLayout';
 import Header from '../../../components/Header';
 import Footer from '../../../components/Footer';
 import ConvoStatus from '../../../components/ConvoStatus';
@@ -62,7 +62,7 @@ function DebugConvoScreen({ status: initialStatus = 'idle', isPressed: initialPr
   const [pressed, setPressed] = useState(initialPressed);
 
   return (
-    <ConvoScreenLayout
+    <AppLayout
       header={<Header title="Debug Console" />}
       main={
         <div className="flex flex-col gap-2 px-3 py-3">
