@@ -32,6 +32,7 @@ export interface LanguageConfig {
     prefixPadding: string;
     threshold: string;
     noiseReduction: string;
+    assistantVoice: string;
     saveSettings: string;
     resetDefaults: string;
   };
@@ -72,6 +73,7 @@ export const LANGUAGES: LanguageConfig[] = [
       prefixPadding: 'وقت الانتظار',
       threshold: 'الحد الأدنى',
       noiseReduction: 'تقليل الضوضاء',
+      assistantVoice: 'صوت المساعد',
       saveSettings: 'حفظ الإعدادات',
       resetDefaults: 'إعادة التعيين',
     },
@@ -110,6 +112,7 @@ export const LANGUAGES: LanguageConfig[] = [
       prefixPadding: 'Délai d\'attente',
       threshold: 'Seuil',
       noiseReduction: 'Réduction du bruit',
+      assistantVoice: "Voix de l'assistant",
       saveSettings: 'Enregistrer',
       resetDefaults: 'Réinitialiser',
     },
@@ -148,6 +151,7 @@ export const LANGUAGES: LanguageConfig[] = [
       prefixPadding: 'Wartezeit',
       threshold: 'Schwellenwert',
       noiseReduction: 'Rauschunterdrückung',
+      assistantVoice: 'Assistentenstimme',
       saveSettings: 'Speichern',
       resetDefaults: 'Zurücksetzen',
     },

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { LanguageConfig } from '../../data/languages';
-import { DEFAULT_VOICE_CONFIG, type VoiceSessionConfig } from '../../agent/config';
+import { ASSISTANT_VOICES, DEFAULT_VOICE_CONFIG, type AssistantVoice, type VoiceSessionConfig } from '../../agent/config';
 import AppLayout from '../../components/AppLayout';
 import SettingSelect from './components/SettingSelect';
 
@@ -28,10 +28,12 @@ export default function SettingsScreen({
   const [saved, setSaved] = useState(false);
 
   const hasChanges =
-    localConfig.noiseReductionType !== savedConfig.noiseReductionType;
+    localConfig.noiseReductionType !== savedConfig.noiseReductionType ||
+    localConfig.voice !== savedConfig.voice;
 
   const isFactoryDefaults =
-    localConfig.noiseReductionType === DEFAULT_VOICE_CONFIG.noiseReductionType;
+    localConfig.noiseReductionType === DEFAULT_VOICE_CONFIG.noiseReductionType &&
+    localConfig.voice === DEFAULT_VOICE_CONFIG.voice;
 
   const handleSave = () => {
     onSave(localConfig);
@@ -67,6 +69,17 @@ export default function SettingsScreen({
             </h2>
 
             <div className="bg-white border border-stone-200 rounded-xl px-4">
+              <SettingSelect
+                label={ui.assistantVoice}
+                value={localConfig.voice}
+                options={ASSISTANT_VOICES}
+                onChange={(v) =>
+                  setLocalConfig((c) => ({
+                    ...c,
+                    voice: v as AssistantVoice,
+                  }))
+                }
+              />
               <SettingSelect
                 label={ui.noiseReduction}
                 value={localConfig.noiseReductionType}

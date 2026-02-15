@@ -52,3 +52,17 @@ export const Saved: Story = {
     />
   ),
 };
+
+export const WithNonDefaultVoice: Story = {
+  render: () => (
+    <AudioConfigPanelWithState
+      localConfig={{ ...DEFAULT_VOICE_CONFIG, voice: 'shimmer' }}
+      onConfigChange={noopFn}
+      onApplyToSession={noopFn}
+      onResetToSaved={noopFn}
+      onSaveAsDefaults={noopFn}
+      savedFeedback={false}
+      defaultOpen
+    />
+  ),
+};

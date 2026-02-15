@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { VoiceSessionConfig } from '../../../agent/config';
+import { ASSISTANT_VOICES, type AssistantVoice, type VoiceSessionConfig } from '../../../agent/config';
 
 interface AudioConfigPanelProps {
   localConfig: VoiceSessionConfig;
@@ -33,6 +33,21 @@ export default function AudioConfigPanel({
       </button>
       {open && (
         <div className="px-3 py-3 space-y-3 bg-white">
+          <div>
+            <div className="flex items-center justify-between gap-2">
+              <label className="text-xs text-stone-600 shrink-0">Voice</label>
+              <select
+                value={localConfig.voice}
+                onChange={(e) => onConfigChange({ ...localConfig, voice: e.target.value as AssistantVoice })}
+                className="text-xs bg-white border border-stone-200 rounded px-2 py-1 min-w-[100px]"
+              >
+                {ASSISTANT_VOICES.map((v) => (
+                  <option key={v.value} value={v.value}>{v.label}</option>
+                ))}
+              </select>
+            </div>
+            <p className="text-[10px] text-stone-400 mt-0.5">Applies on next session start, not mid-session.</p>
+          </div>
           <div className="flex items-center justify-between gap-2">
             <label className="text-xs text-stone-600 shrink-0">Noise Reduction</label>
             <select

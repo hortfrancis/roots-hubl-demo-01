@@ -39,3 +39,13 @@ export const WithChanges: Story = {
     onBack: () => {},
   },
 };
+
+export const WithNonDefaultVoice: Story = {
+  args: {
+    language: arabic,
+    savedConfig: { ...DEFAULT_VOICE_CONFIG, voice: 'sage' },
+    onSave: () => {},
+    onResetDefaults: () => {},
+    onBack: () => {},
+  },
+};

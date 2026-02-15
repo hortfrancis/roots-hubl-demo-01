@@ -3,7 +3,6 @@ import { RealtimeAgent, RealtimeSession } from '@openai/agents/realtime';
 import type { RealtimeItem } from '@openai/agents/realtime';
 import { logSessionHistory } from '../utils';
 import {
-  ASSISTANT_VOICE,
   buildAudioInputConfig,
   type VoiceSessionConfig,
 } from '../agent/config';
@@ -118,6 +117,8 @@ function useManualVoiceSession(options: UseManualVoiceSessionOptions): UseManual
   }, []);
 
   // ── Config update ───────────────────────────────────────────────────
+  // NOTE: voice is NOT included here — it can only be set at session
+  // creation time (RealtimeAgent constructor), not changed mid-session.
 
   const updateVoiceConfig = useCallback((config: VoiceSessionConfig) => {
     const session = sessionRef.current;
@@ -198,7 +199,7 @@ function useManualVoiceSession(options: UseManualVoiceSessionOptions): UseManual
       name: 'Roots',
       instructions,
       tools,
-      voice: ASSISTANT_VOICE,
+      voice: voiceConfig.voice,
     });
 
     const session = new RealtimeSession(agent, {
@@ -218,7 +219,7 @@ function useManualVoiceSession(options: UseManualVoiceSessionOptions): UseManual
     });
     sessionRef.current = session;
     setConnectionStatus('connecting');
-    addEvent('session_created', `voice: ${ASSISTANT_VOICE}`, 'client');
+    addEvent('session_created', `voice: ${voiceConfig.voice}`, 'client');
 
     const connectSession = async () => {
       try {

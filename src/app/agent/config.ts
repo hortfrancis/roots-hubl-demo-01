@@ -1,6 +1,24 @@
 // ─── Voice Session Configuration ────────────────────────────────────────
 
+export type AssistantVoice =
+  | 'alloy' | 'ash' | 'ballad' | 'cedar' | 'coral'
+  | 'echo' | 'marin' | 'sage' | 'shimmer' | 'verse';
+
+export const ASSISTANT_VOICES: { value: AssistantVoice; label: string }[] = [
+  { value: 'alloy', label: 'Alloy' },
+  { value: 'ash', label: 'Ash' },
+  { value: 'ballad', label: 'Ballad' },
+  { value: 'cedar', label: 'Cedar' },
+  { value: 'coral', label: 'Coral' },
+  { value: 'echo', label: 'Echo' },
+  { value: 'marin', label: 'Marin' },
+  { value: 'sage', label: 'Sage' },
+  { value: 'shimmer', label: 'Shimmer' },
+  { value: 'verse', label: 'Verse' },
+];
+
 export interface VoiceSessionConfig {
+  voice: AssistantVoice;
   turnDetectionType: 'server_vad' | 'semantic_vad';
   eagerness: 'auto' | 'low' | 'medium' | 'high';
   silenceDurationMs: number;
@@ -11,6 +29,7 @@ export interface VoiceSessionConfig {
 }
 
 export const DEFAULT_VOICE_CONFIG: VoiceSessionConfig = {
+  voice: 'coral',
   turnDetectionType: 'server_vad',
   eagerness: 'low',
   silenceDurationMs: 1200,
@@ -156,4 +175,3 @@ Search for English class providers in the local area. You can filter by region (
 You will receive system messages from the application prefixed with [System Message]. Follow these instructions. They come from the app, not the user.
 `;
 
-export const ASSISTANT_VOICE: string = 'coral';
