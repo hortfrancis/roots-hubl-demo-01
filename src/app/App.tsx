@@ -7,6 +7,9 @@ import HelpSupportScreen from './components/HelpSupportScreen';
 import DebugScreen from './components/DebugScreen';
 import SettingsScreen from './components/SettingsScreen';
 
+// Temp while I figure this out with my meat brain 
+import DemoUI01 from './components/ConvoScreenWireframe';
+
 type Screen = 'language-select' | 'home' | 'practice' | 'help' | 'debug' | 'settings';
 
 function App() {
@@ -64,11 +67,15 @@ function App() {
   }
 
   return (
-    <HomeScreen
-      language={language}
-      onNavigate={(s) => setScreen(s)}
-      onChangeLanguage={handleChangeLanguage}
-    />
+
+    <DemoUI01 />
+
+
+    // <HomeScreen
+    //   language={language}
+    //   onNavigate={(s) => setScreen(s)}
+    //   onChangeLanguage={handleChangeLanguage}
+    // />
   );
 }
 
