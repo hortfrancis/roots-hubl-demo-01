@@ -3,7 +3,7 @@ import ConvoScreenWireframe from './ConvoScreenWireframe';
 
 const meta: Meta<typeof ConvoScreenWireframe> = {
   component: ConvoScreenWireframe,
-  title: 'ConvoScreenWireframe',
+  title: 'Wireframes/ConvoScreenWireframe',
 };
 export default meta;  
 

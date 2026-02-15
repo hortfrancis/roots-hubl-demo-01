@@ -1,14 +1,11 @@
 import { useState } from 'react';
 import { useLanguage, useVoiceSettings } from './hooks';
-import LanguageSelectScreen from './components/LanguageSelectScreen';
-import HomeScreen from './components/HomeScreen';
-import PracticeSpeakingScreen from './components/PracticeSpeakingScreen';
-import HelpSupportScreen from './components/HelpSupportScreen';
-import DebugScreen from './components/DebugScreen';
-import SettingsScreen from './components/SettingsScreen';
-
-// Temp while I figure this out with my meat brain 
-import DemoUI01 from './components/ConvoScreenWireframe';
+import LanguageSelectScreen from './screens/language-select/LanguageSelectScreen';
+import HomeScreen from './screens/home/HomeScreen';
+import PracticeSpeakingScreen from './screens/practice-speaking/PracticeSpeakingScreen';
+import HelpSupportScreen from './screens/help-support/HelpSupportScreen';
+import DebugScreen from './screens/debug/DebugScreen';
+import SettingsScreen from './screens/settings/SettingsScreen';
 
 type Screen = 'language-select' | 'home' | 'practice' | 'help' | 'debug' | 'settings';
 
@@ -67,15 +64,11 @@ function App() {
   }
 
   return (
-
-    <DemoUI01 />
-
-
-    // <HomeScreen
-    //   language={language}
-    //   onNavigate={(s) => setScreen(s)}
-    //   onChangeLanguage={handleChangeLanguage}
-    // />
+    <HomeScreen
+      language={language}
+      onNavigate={(s) => setScreen(s)}
+      onChangeLanguage={handleChangeLanguage}
+    />
   );
 }
 
