@@ -36,15 +36,15 @@ const sampleHistory: RealtimeItem[] = [
   {
     type: 'message',
     role: 'assistant',
-    id: 'msg_1',
-    content: [{ type: 'text', text: 'Hi! Debug session is ready. What would you like to test?' }],
+    itemId: 'msg_1',
+    content: [{ type: 'output_text', text: 'Hi! Debug session is ready. What would you like to test?' }],
     status: 'completed',
   } as RealtimeItem,
   {
     type: 'message',
     role: 'user',
-    id: 'msg_2',
-    content: [{ type: 'input_text', transcript: 'Test the phrase tool please.' }],
+    itemId: 'msg_2',
+    content: [{ type: 'input_text', text: 'Test the phrase tool please.' }],
     status: 'completed',
   } as RealtimeItem,
 ];

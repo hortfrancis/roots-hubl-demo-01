@@ -21,22 +21,21 @@ const sampleHistory: RealtimeItem[] = [
   {
     type: 'message',
     role: 'assistant',
-    id: 'msg_1',
-    content: [{ type: 'text', text: 'Hello! I am ready for testing.' }],
+    itemId: 'msg_1',
+    content: [{ type: 'output_text', text: 'Hello! I am ready for testing.' }],
     status: 'completed',
   } as RealtimeItem,
   {
     type: 'message',
     role: 'user',
-    id: 'msg_2',
-    content: [{ type: 'input_text', transcript: 'Can you test the display phrase tool?' }],
+    itemId: 'msg_2',
+    content: [{ type: 'input_text', text: 'Can you test the display phrase tool?' }],
     status: 'completed',
   } as RealtimeItem,
   {
     type: 'function_call',
-    id: 'fc_1',
+    itemId: 'fc_1',
     name: 'display_phrase',
-    callId: 'call_1',
     arguments: '{"englishText":"Hello","phoneticText":"heh-LOH","nativeText":"Bonjour"}',
     output: 'Displayed phrase: Hello',
     status: 'completed',
@@ -44,8 +43,8 @@ const sampleHistory: RealtimeItem[] = [
   {
     type: 'message',
     role: 'assistant',
-    id: 'msg_3',
-    content: [{ type: 'text', text: 'I\'ve displayed the phrase "Hello" for you. Try saying it!' }],
+    itemId: 'msg_3',
+    content: [{ type: 'output_text', text: 'I\'ve displayed the phrase "Hello" for you. Try saying it!' }],
     status: 'completed',
   } as RealtimeItem,
 ];
