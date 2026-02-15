@@ -7,6 +7,7 @@ export interface VoiceSessionConfig {
   prefixPaddingMs: number;
   threshold: number;
   noiseReductionType: 'near_field' | 'far_field' | 'off';
+  pressToSend: boolean;
 }
 
 export const DEFAULT_VOICE_CONFIG: VoiceSessionConfig = {
@@ -16,6 +17,7 @@ export const DEFAULT_VOICE_CONFIG: VoiceSessionConfig = {
   prefixPaddingMs: 400,
   threshold: 0.75,
   noiseReductionType: 'far_field',
+  pressToSend: false,
 };
 
 /**
@@ -24,13 +26,18 @@ export const DEFAULT_VOICE_CONFIG: VoiceSessionConfig = {
  */
 export function buildAudioInputConfig(vc: VoiceSessionConfig) {
   return {
-    turnDetection: {
-      type: vc.turnDetectionType,
-      eagerness: vc.eagerness,
-      silenceDurationMs: vc.silenceDurationMs,
-      prefixPaddingMs: vc.prefixPaddingMs,
-      threshold: vc.threshold,
-    },
+    // When pressToSend is active, omit turnDetection from the SDK config.
+    // Actual disabling (turn_detection: null) is done via raw sendEvent post-connect,
+    // because the SDK falls back to semantic_vad when turnDetection is undefined.
+    turnDetection: vc.pressToSend
+      ? undefined
+      : {
+          type: vc.turnDetectionType,
+          eagerness: vc.eagerness,
+          silenceDurationMs: vc.silenceDurationMs,
+          prefixPaddingMs: vc.prefixPaddingMs,
+          threshold: vc.threshold,
+        },
     noiseReduction: vc.noiseReductionType === 'off'
       ? null
       : { type: vc.noiseReductionType },

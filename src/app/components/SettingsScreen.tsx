@@ -67,6 +67,43 @@ function SettingSlider({
   );
 }
 
+function SettingToggle({
+  label,
+  description,
+  checked,
+  onChange,
+}: {
+  label: string;
+  description?: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 py-3 border-b border-stone-100 last:border-b-0">
+      <div>
+        <label className="text-sm text-stone-700">{label}</label>
+        {description && (
+          <p className="text-xs text-stone-400 mt-0.5">{description}</p>
+        )}
+      </div>
+      <button
+        onClick={() => onChange(!checked)}
+        className={`relative w-11 h-6 rounded-full transition-colors cursor-pointer border-none shrink-0 ${
+          checked ? 'bg-emerald-500' : 'bg-stone-300'
+        }`}
+        role="switch"
+        aria-checked={checked}
+      >
+        <span
+          className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
+            checked ? 'translate-x-5' : ''
+          }`}
+        />
+      </button>
+    </div>
+  );
+}
+
 // ─── Main Settings Screen ────────────────────────────────────────────────
 
 interface SettingsScreenProps {
@@ -91,6 +128,7 @@ export default function SettingsScreen({
   const [saved, setSaved] = useState(false);
 
   const hasChanges =
+    localConfig.pressToSend !== savedConfig.pressToSend ||
     localConfig.turnDetectionType !== savedConfig.turnDetectionType ||
     localConfig.eagerness !== savedConfig.eagerness ||
     localConfig.silenceDurationMs !== savedConfig.silenceDurationMs ||
@@ -99,6 +137,7 @@ export default function SettingsScreen({
     localConfig.noiseReductionType !== savedConfig.noiseReductionType;
 
   const isFactoryDefaults =
+    localConfig.pressToSend === DEFAULT_VOICE_CONFIG.pressToSend &&
     localConfig.turnDetectionType === DEFAULT_VOICE_CONFIG.turnDetectionType &&
     localConfig.eagerness === DEFAULT_VOICE_CONFIG.eagerness &&
     localConfig.silenceDurationMs === DEFAULT_VOICE_CONFIG.silenceDurationMs &&
@@ -139,63 +178,73 @@ export default function SettingsScreen({
         </h2>
 
         <div className="bg-white border border-stone-200 rounded-xl px-4">
-          <SettingSelect
-            label={ui.turnDetection}
-            value={localConfig.turnDetectionType}
-            options={[
-              { value: 'server_vad', label: 'Server VAD' },
-              { value: 'semantic_vad', label: 'Semantic VAD' },
-            ]}
-            onChange={(v) =>
-              setLocalConfig((c) => ({
-                ...c,
-                turnDetectionType: v as VoiceSessionConfig['turnDetectionType'],
-              }))
-            }
+          <SettingToggle
+            label={ui.pressToSend}
+            description={ui.pressToSendDesc}
+            checked={localConfig.pressToSend}
+            onChange={(v) => setLocalConfig((c) => ({ ...c, pressToSend: v }))}
           />
-          <SettingSelect
-            label={ui.eagerness}
-            value={localConfig.eagerness}
-            options={[
-              { value: 'low', label: 'Low' },
-              { value: 'medium', label: 'Medium' },
-              { value: 'high', label: 'High' },
-              { value: 'auto', label: 'Auto' },
-            ]}
-            onChange={(v) =>
-              setLocalConfig((c) => ({
-                ...c,
-                eagerness: v as VoiceSessionConfig['eagerness'],
-              }))
-            }
-          />
-          <SettingSlider
-            label={ui.silenceDuration}
-            value={localConfig.silenceDurationMs}
-            min={200}
-            max={2000}
-            step={50}
-            unit="ms"
-            onChange={(v) => setLocalConfig((c) => ({ ...c, silenceDurationMs: v }))}
-          />
-          <SettingSlider
-            label={ui.prefixPadding}
-            value={localConfig.prefixPaddingMs}
-            min={100}
-            max={1000}
-            step={50}
-            unit="ms"
-            onChange={(v) => setLocalConfig((c) => ({ ...c, prefixPaddingMs: v }))}
-          />
-          <SettingSlider
-            label={ui.threshold}
-            value={localConfig.threshold}
-            min={0.1}
-            max={1.0}
-            step={0.05}
-            unit=""
-            onChange={(v) => setLocalConfig((c) => ({ ...c, threshold: v }))}
-          />
+          {/* VAD controls — dimmed when Press to Send is on (VAD is disabled) */}
+          <div className={localConfig.pressToSend ? 'opacity-40 pointer-events-none' : ''}>
+            <SettingSelect
+              label={ui.turnDetection}
+              value={localConfig.turnDetectionType}
+              options={[
+                { value: 'server_vad', label: 'Server VAD' },
+                { value: 'semantic_vad', label: 'Semantic VAD' },
+              ]}
+              onChange={(v) =>
+                setLocalConfig((c) => ({
+                  ...c,
+                  turnDetectionType: v as VoiceSessionConfig['turnDetectionType'],
+                }))
+              }
+            />
+            <SettingSelect
+              label={ui.eagerness}
+              value={localConfig.eagerness}
+              options={[
+                { value: 'low', label: 'Low' },
+                { value: 'medium', label: 'Medium' },
+                { value: 'high', label: 'High' },
+                { value: 'auto', label: 'Auto' },
+              ]}
+              onChange={(v) =>
+                setLocalConfig((c) => ({
+                  ...c,
+                  eagerness: v as VoiceSessionConfig['eagerness'],
+                }))
+              }
+            />
+            <SettingSlider
+              label={ui.silenceDuration}
+              value={localConfig.silenceDurationMs}
+              min={200}
+              max={2000}
+              step={50}
+              unit="ms"
+              onChange={(v) => setLocalConfig((c) => ({ ...c, silenceDurationMs: v }))}
+            />
+            <SettingSlider
+              label={ui.prefixPadding}
+              value={localConfig.prefixPaddingMs}
+              min={100}
+              max={1000}
+              step={50}
+              unit="ms"
+              onChange={(v) => setLocalConfig((c) => ({ ...c, prefixPaddingMs: v }))}
+            />
+            <SettingSlider
+              label={ui.threshold}
+              value={localConfig.threshold}
+              min={0.1}
+              max={1.0}
+              step={0.05}
+              unit=""
+              onChange={(v) => setLocalConfig((c) => ({ ...c, threshold: v }))}
+            />
+          </div>
+          {/* Noise reduction stays active — still useful in manual mode */}
           <SettingSelect
             label={ui.noiseReduction}
             value={localConfig.noiseReductionType}

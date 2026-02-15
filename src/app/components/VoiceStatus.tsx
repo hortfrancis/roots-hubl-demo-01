@@ -6,9 +6,10 @@ interface VoiceStatusProps {
     connecting: string;
     listening: string;
   };
+  pressToSendLabel?: string;
 }
 
-export default function VoiceStatus({ status, labels }: VoiceStatusProps) {
+export default function VoiceStatus({ status, labels, pressToSendLabel }: VoiceStatusProps) {
   const dotColor = status === 'connected'
     ? 'bg-emerald-500'
     : status === 'connecting'
@@ -16,7 +17,7 @@ export default function VoiceStatus({ status, labels }: VoiceStatusProps) {
       : 'bg-red-500';
 
   const label = status === 'connected'
-    ? labels.listening
+    ? (pressToSendLabel ?? labels.listening)
     : status === 'connecting'
       ? labels.connecting
       : 'Error';

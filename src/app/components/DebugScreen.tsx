@@ -14,6 +14,7 @@ import type { LanguageConfig } from '../data/languages';
 import type { PhraseOutput } from '../tools/displayPhrase';
 import VoiceStatus from './VoiceStatus';
 import MicMuteButton from './MicMuteButton';
+import SendButton from './SendButton';
 
 // ─── Sub-components ──────────────────────────────────────────────────────
 
@@ -80,6 +81,36 @@ function ConfigSlider({
         onChange={(e) => onChange(Number(e.target.value))}
         className="w-full h-1.5 bg-stone-200 rounded-lg appearance-none cursor-pointer accent-emerald-600"
       />
+    </div>
+  );
+}
+
+function ConfigToggle({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <label className="text-xs text-stone-600 shrink-0">{label}</label>
+      <button
+        onClick={() => onChange(!checked)}
+        className={`relative w-9 h-5 rounded-full transition-colors cursor-pointer border-none ${
+          checked ? 'bg-emerald-500' : 'bg-stone-300'
+        }`}
+        role="switch"
+        aria-checked={checked}
+      >
+        <span
+          className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${
+            checked ? 'translate-x-4' : ''
+          }`}
+        />
+      </button>
     </div>
   );
 }
@@ -157,6 +188,7 @@ export default function DebugScreen({ language, savedConfig, onSaveConfig, onBac
     eventLog,
     usage,
     updateVoiceConfig,
+    commitAudioAndRespond,
   } = useRealtimeAgent({
     tools,
     instructions: DEBUG_INSTRUCTIONS,
@@ -210,14 +242,27 @@ export default function DebugScreen({ language, savedConfig, onSaveConfig, onBac
         <span className="text-xs text-stone-400">{language.flag} {language.code.toUpperCase()}</span>
       </div>
 
-      {/* Voice status + mute */}
+      {/* Voice status + mute + send */}
       <div className="flex items-center justify-between gap-3 mb-4 px-2">
-        <VoiceStatus status={connectionStatus} labels={{ connecting: 'Connecting...', listening: 'Listening' }} />
-        <MicMuteButton
-          isMuted={isMuted}
-          onToggle={toggleMute}
-          labels={{ muted: 'Muted', unmuted: 'Live' }}
+        <VoiceStatus
+          status={connectionStatus}
+          labels={{ connecting: 'Connecting...', listening: 'Listening' }}
+          pressToSendLabel={localConfig.pressToSend ? 'Speak, then tap Send' : undefined}
         />
+        <div className="flex items-center gap-2">
+          <MicMuteButton
+            isMuted={isMuted}
+            onToggle={toggleMute}
+            labels={{ muted: 'Muted', unmuted: 'Live' }}
+          />
+          {localConfig.pressToSend && (
+            <SendButton
+              onSend={commitAudioAndRespond}
+              label="Send"
+              disabled={connectionStatus !== 'connected'}
+            />
+          )}
+        </div>
       </div>
 
       {/* Live phrase display (compact) */}
@@ -248,53 +293,62 @@ export default function DebugScreen({ language, savedConfig, onSaveConfig, onBac
           </button>
           {openPanels.has('config') && (
             <div className="px-3 py-3 space-y-3 bg-white">
-              <ConfigSelect
-                label="Turn Detection"
-                value={localConfig.turnDetectionType}
-                options={[
-                  { value: 'server_vad', label: 'Server VAD' },
-                  { value: 'semantic_vad', label: 'Semantic VAD' },
-                ]}
-                onChange={(v) => setLocalConfig(c => ({ ...c, turnDetectionType: v as VoiceSessionConfig['turnDetectionType'] }))}
+              <ConfigToggle
+                label="Press to Send"
+                checked={localConfig.pressToSend}
+                onChange={(v) => setLocalConfig(c => ({ ...c, pressToSend: v }))}
               />
-              <ConfigSelect
-                label="Eagerness"
-                value={localConfig.eagerness}
-                options={[
-                  { value: 'low', label: 'Low' },
-                  { value: 'medium', label: 'Medium' },
-                  { value: 'high', label: 'High' },
-                  { value: 'auto', label: 'Auto' },
-                ]}
-                onChange={(v) => setLocalConfig(c => ({ ...c, eagerness: v as VoiceSessionConfig['eagerness'] }))}
-              />
-              <ConfigSlider
-                label="Silence Duration"
-                value={localConfig.silenceDurationMs}
-                min={200}
-                max={2000}
-                step={50}
-                unit="ms"
-                onChange={(v) => setLocalConfig(c => ({ ...c, silenceDurationMs: v }))}
-              />
-              <ConfigSlider
-                label="Prefix Padding"
-                value={localConfig.prefixPaddingMs}
-                min={100}
-                max={1000}
-                step={50}
-                unit="ms"
-                onChange={(v) => setLocalConfig(c => ({ ...c, prefixPaddingMs: v }))}
-              />
-              <ConfigSlider
-                label="Threshold"
-                value={localConfig.threshold}
-                min={0.1}
-                max={1.0}
-                step={0.05}
-                unit=""
-                onChange={(v) => setLocalConfig(c => ({ ...c, threshold: v }))}
-              />
+              {/* VAD controls — dimmed when Press to Send is on */}
+              <div className={localConfig.pressToSend ? 'opacity-40 pointer-events-none space-y-3' : 'space-y-3'}>
+                <ConfigSelect
+                  label="Turn Detection"
+                  value={localConfig.turnDetectionType}
+                  options={[
+                    { value: 'server_vad', label: 'Server VAD' },
+                    { value: 'semantic_vad', label: 'Semantic VAD' },
+                  ]}
+                  onChange={(v) => setLocalConfig(c => ({ ...c, turnDetectionType: v as VoiceSessionConfig['turnDetectionType'] }))}
+                />
+                <ConfigSelect
+                  label="Eagerness"
+                  value={localConfig.eagerness}
+                  options={[
+                    { value: 'low', label: 'Low' },
+                    { value: 'medium', label: 'Medium' },
+                    { value: 'high', label: 'High' },
+                    { value: 'auto', label: 'Auto' },
+                  ]}
+                  onChange={(v) => setLocalConfig(c => ({ ...c, eagerness: v as VoiceSessionConfig['eagerness'] }))}
+                />
+                <ConfigSlider
+                  label="Silence Duration"
+                  value={localConfig.silenceDurationMs}
+                  min={200}
+                  max={2000}
+                  step={50}
+                  unit="ms"
+                  onChange={(v) => setLocalConfig(c => ({ ...c, silenceDurationMs: v }))}
+                />
+                <ConfigSlider
+                  label="Prefix Padding"
+                  value={localConfig.prefixPaddingMs}
+                  min={100}
+                  max={1000}
+                  step={50}
+                  unit="ms"
+                  onChange={(v) => setLocalConfig(c => ({ ...c, prefixPaddingMs: v }))}
+                />
+                <ConfigSlider
+                  label="Threshold"
+                  value={localConfig.threshold}
+                  min={0.1}
+                  max={1.0}
+                  step={0.05}
+                  unit=""
+                  onChange={(v) => setLocalConfig(c => ({ ...c, threshold: v }))}
+                />
+              </div>
+              {/* Noise reduction stays active in manual mode */}
               <ConfigSelect
                 label="Noise Reduction"
                 value={localConfig.noiseReductionType}

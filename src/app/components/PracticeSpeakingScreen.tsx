@@ -10,6 +10,7 @@ import {
 import { PRACTICE_INSTRUCTIONS, type VoiceSessionConfig } from '../agent/config';
 import VoiceStatus from './VoiceStatus';
 import MicMuteButton from './MicMuteButton';
+import SendButton from './SendButton';
 import PhraseCard from './PhraseCard';
 import PronunciationRating from './PronunciationRating';
 import PronunciationFeedback from './PronunciationFeedback';
@@ -45,7 +46,7 @@ export default function PracticeSpeakingScreen({ language, voiceConfig, onBack }
     [language.name]
   );
 
-  const { isMuted, toggleMute, connectionStatus } = useRealtimeAgent({
+  const { isMuted, toggleMute, connectionStatus, commitAudioAndRespond, pressToSend } = useRealtimeAgent({
     tools,
     instructions,
     voiceConfig,
@@ -78,13 +79,23 @@ export default function PracticeSpeakingScreen({ language, voiceConfig, onBack }
         <VoiceStatus
           status={connectionStatus}
           labels={{ connecting: ui.connecting, listening: ui.listening }}
+          pressToSendLabel={pressToSend ? ui.speakThenSend : undefined}
         />
 
-        <MicMuteButton
-          isMuted={isMuted}
-          onToggle={toggleMute}
-          labels={{ muted: ui.micMuted, unmuted: ui.micUnmuted }}
-        />
+        <div className="flex items-center gap-4">
+          <MicMuteButton
+            isMuted={isMuted}
+            onToggle={toggleMute}
+            labels={{ muted: ui.micMuted, unmuted: ui.micUnmuted }}
+          />
+          {pressToSend && (
+            <SendButton
+              onSend={commitAudioAndRespond}
+              label={ui.sendButton}
+              disabled={connectionStatus !== 'connected'}
+            />
+          )}
+        </div>
 
         <PhraseCard
           englishText={phrase.englishText}

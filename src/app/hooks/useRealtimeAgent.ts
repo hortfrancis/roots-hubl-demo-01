@@ -70,18 +70,53 @@ function useRealtimeAgent(options: UseRealtimeAgentOptions) {
     if (!session) return;
 
     try {
-      const audioInput = buildAudioInputConfig(newConfig);
-      // Update session config mid-session via transport layer
-      (session.transport as unknown as {
-        updateSessionConfig: (config: Record<string, unknown>) => void;
-      }).updateSessionConfig({
-        audio: { input: audioInput },
-      });
-      addEvent('config_updated', JSON.stringify(newConfig));
+      if (newConfig.pressToSend) {
+        // Bypass SDK config — send raw session.update with turn_detection: null.
+        // Must use the GA-format nesting (audio.input.turn_detection) because the SDK's
+        // _getMergedSessionConfig always falls back to semantic_vad when turnDetection is undefined.
+        (session.transport as unknown as {
+          sendEvent: (event: Record<string, unknown>) => void;
+        }).sendEvent({
+          type: 'session.update',
+          session: {
+            audio: {
+              input: { turn_detection: null },
+            },
+          },
+        });
+        addEvent('config_updated', 'pressToSend enabled — turn_detection: null');
+      } else {
+        // Normal path: use SDK's updateSessionConfig
+        const audioInput = buildAudioInputConfig(newConfig);
+        (session.transport as unknown as {
+          updateSessionConfig: (config: Record<string, unknown>) => void;
+        }).updateSessionConfig({
+          audio: { input: audioInput },
+        });
+        addEvent('config_updated', JSON.stringify(newConfig));
+      }
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Unknown error';
       addEvent('config_update_error', msg);
       console.error('Failed to update voice config:', err);
+    }
+  }, [addEvent]);
+
+  const commitAudioAndRespond = useCallback(() => {
+    const session = sessionRef.current;
+    if (!session) return;
+
+    try {
+      const transport = session.transport as unknown as {
+        sendEvent: (event: Record<string, unknown>) => void;
+      };
+      transport.sendEvent({ type: 'input_audio_buffer.commit' });
+      transport.sendEvent({ type: 'response.create' });
+      addEvent('manual_commit', 'input_audio_buffer.commit + response.create');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Unknown error';
+      addEvent('manual_commit_error', msg);
+      console.error('Failed to commit audio:', err);
     }
   }, [addEvent]);
 
@@ -141,6 +176,23 @@ function useRealtimeAgent(options: UseRealtimeAgentOptions) {
 
     connectSession()
       .then(() => {
+        // Disable VAD for press-to-send mode via raw event.
+        // Must fire AFTER the SDK's initial updateSessionConfig (which sets semantic_vad
+        // as default) but BEFORE sendMessage triggers the first response.
+        if (voiceConfig.pressToSend) {
+          (session.transport as unknown as {
+            sendEvent: (event: Record<string, unknown>) => void;
+          }).sendEvent({
+            type: 'session.update',
+            session: {
+              audio: {
+                input: { turn_detection: null },
+              },
+            },
+          });
+          addEvent('press_to_send_enabled', 'turn_detection set to null');
+        }
+
         const msg = initialMessage || "[System Message] Conversation started. Please greet the user and introduce yourself.";
         session.sendMessage(msg);
         addEvent('initial_message_sent');
@@ -210,6 +262,8 @@ function useRealtimeAgent(options: UseRealtimeAgentOptions) {
     eventLog,
     usage,
     updateVoiceConfig,
+    commitAudioAndRespond,
+    pressToSend: voiceConfig.pressToSend,
   };
 }
 

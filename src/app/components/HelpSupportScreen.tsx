@@ -6,6 +6,7 @@ import { createCheckLocalProvidersTool } from '../tools';
 import { HELP_INSTRUCTIONS, type VoiceSessionConfig } from '../agent/config';
 import VoiceStatus from './VoiceStatus';
 import MicMuteButton from './MicMuteButton';
+import SendButton from './SendButton';
 import ProviderList from './ProviderList';
 
 interface HelpSupportScreenProps {
@@ -29,7 +30,7 @@ export default function HelpSupportScreen({ language, voiceConfig, onBack }: Hel
     []
   );
 
-  const { isMuted, toggleMute, connectionStatus } = useRealtimeAgent({
+  const { isMuted, toggleMute, connectionStatus, commitAudioAndRespond, pressToSend } = useRealtimeAgent({
     tools,
     instructions,
     voiceConfig,
@@ -49,13 +50,23 @@ export default function HelpSupportScreen({ language, voiceConfig, onBack }: Hel
         <VoiceStatus
           status={connectionStatus}
           labels={{ connecting: ui.connecting, listening: ui.listening }}
+          pressToSendLabel={pressToSend ? ui.speakThenSend : undefined}
         />
 
-        <MicMuteButton
-          isMuted={isMuted}
-          onToggle={toggleMute}
-          labels={{ muted: ui.micMuted, unmuted: ui.micUnmuted }}
-        />
+        <div className="flex items-center gap-4">
+          <MicMuteButton
+            isMuted={isMuted}
+            onToggle={toggleMute}
+            labels={{ muted: ui.micMuted, unmuted: ui.micUnmuted }}
+          />
+          {pressToSend && (
+            <SendButton
+              onSend={commitAudioAndRespond}
+              label={ui.sendButton}
+              disabled={connectionStatus !== 'connected'}
+            />
+          )}
+        </div>
 
         <ProviderList
           providers={providers}

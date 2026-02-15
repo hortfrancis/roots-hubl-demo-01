@@ -34,6 +34,10 @@ export interface LanguageConfig {
     noiseReduction: string;
     saveSettings: string;
     resetDefaults: string;
+    pressToSend: string;
+    pressToSendDesc: string;
+    sendButton: string;
+    speakThenSend: string;
   };
 }
 
@@ -74,6 +78,10 @@ export const LANGUAGES: LanguageConfig[] = [
       noiseReduction: 'تقليل الضوضاء',
       saveSettings: 'حفظ الإعدادات',
       resetDefaults: 'إعادة التعيين',
+      pressToSend: 'اضغط للإرسال',
+      pressToSendDesc: 'يُنصح به في الأماكن الصاخبة أو عند استخدام مكبر الصوت',
+      sendButton: 'إرسال',
+      speakThenSend: 'تحدث، ثم اضغط إرسال',
     },
   },
   {
@@ -112,6 +120,10 @@ export const LANGUAGES: LanguageConfig[] = [
       noiseReduction: 'Réduction du bruit',
       saveSettings: 'Enregistrer',
       resetDefaults: 'Réinitialiser',
+      pressToSend: 'Appuyer pour envoyer',
+      pressToSendDesc: 'Recommandé dans les environnements bruyants ou avec haut-parleur',
+      sendButton: 'Envoyer',
+      speakThenSend: 'Parlez, puis appuyez sur Envoyer',
     },
   },
   {
@@ -150,6 +162,10 @@ export const LANGUAGES: LanguageConfig[] = [
       noiseReduction: 'Rauschunterdrückung',
       saveSettings: 'Speichern',
       resetDefaults: 'Zurücksetzen',
+      pressToSend: 'Zum Senden drücken',
+      pressToSendDesc: 'Empfohlen bei lauter Umgebung oder Freisprechen',
+      sendButton: 'Senden',
+      speakThenSend: 'Sprechen Sie, dann tippen Sie auf Senden',
     },
   },
 ];
